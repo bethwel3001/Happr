@@ -2,17 +2,22 @@ import { useState } from "react";
 import { motion, MotionConfig } from "motion/react";
 import { toast } from "sonner";
 import CtaButton from "./CtaButton";
+import checkUsernameAvailability from "@/utils/checkUsernameAvailability";
 
 const JoinUsSection = () => {
   const [username, setUsername] = useState<string>("");
 
   const handleSubmit = async () => {
-    if (!username || username.trim().length < 1) {
+    if (!username || username.trim().length < 2) {
       toast.error("Invalid username input");
       return;
     }
 
-    setUsername("");
+    try {
+      await checkUsernameAvailability(username);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
