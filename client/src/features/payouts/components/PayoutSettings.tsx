@@ -23,7 +23,7 @@ const PayoutSettings = () => {
       <form
         aria-label="account settings form"
         onSubmit={e => e.preventDefault()}
-        className="w-full flex flex-col gap-4 mt-4 mb-10"
+        className="w-full flex flex-col gap-4 p-4 border rounded-md mb-8"
       >
         <div className="w-full flex flex-col gap-2">
           <span> Bank Name </span>
