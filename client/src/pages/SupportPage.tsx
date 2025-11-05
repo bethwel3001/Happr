@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { Navbar, UserMetaInfo, SharePagePopup } from "@/features/support";
+import {
+  Navbar,
+  UserMetaInfo,
+  SharePagePopup,
+  AboutUserSection,
+  TipUserSection,
+  RecentSupportersSection,
+  CtaSection
+} from "@/features/support";
 
 const SupportPage = () => {
   const params = useParams();
@@ -11,13 +19,13 @@ const SupportPage = () => {
   return (
     <article
       aria-label={`${params.username}'s Happr Page`}
-      className="w-full flex flex-col gap-8 bg-card text-card-foreground"
+      className="w-full min-h-screen flex flex-col bg-card font-openSans text-card-foreground pb-6"
     >
       <header>
         <Navbar />
       </header>
 
-      <main>
+      <main className="w-full flex flex-col items-center gap-3 [&_h1]:font-fredoka [&_h2]:font-fredoka [&_h3]:font-fredoka">
         {openShareModal && (
           <SharePagePopup
             userInfo={{ username: params.username, fullName: "Charming Dc" }}
@@ -25,7 +33,15 @@ const SupportPage = () => {
           />
         )}
         <UserMetaInfo setOpenShareModal={setOpenShareModal} />
+        <AboutUserSection />
+        <TipUserSection />
+        <RecentSupportersSection />
+        <CtaSection />
       </main>
+
+      <footer className="w-full flex flex-col items-center text-center gap-3 mt-8">
+        <p>© 2025 - {new Date().getFullYear()} Happr.</p>
+      </footer>
     </article>
   );
 };
