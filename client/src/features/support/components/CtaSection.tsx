@@ -20,7 +20,7 @@ const CtaSection = () => {
       <p> Turn your creativity into smiles </p>
 
       <Link to="/signup" className="text-primary underline">
-        Create a Happr page
+        Create your Happr page
       </Link>
     </section>
   );

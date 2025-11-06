@@ -18,13 +18,11 @@ const DisplaySupporter = ({ supporter }: { supporter: Supporter }) => {
           @{supporterName}
         </a>
       ) : (
-        <span className={`${supporter.isAnonymous ? "" : "font-bold"}`}>
-          {supporterName}
-        </span>
+        <span className="font-bold">{supporterName}</span>
       )}
       <span>
         {" "}
-        sent <strong>{supporter.smileCount}</strong> smiles 😊{" "}
+        sent <strong>x{supporter.smileCount}</strong> smiles 😊
       </span>
     </div>
   );

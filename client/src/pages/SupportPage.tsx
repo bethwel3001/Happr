@@ -25,7 +25,7 @@ const SupportPage = () => {
         <Navbar />
       </header>
 
-      <main className="w-full flex flex-col items-center gap-3 [&_h1]:font-fredoka [&_h2]:font-fredoka [&_h3]:font-fredoka">
+      <main className="w-full flex flex-col items-center gap-3">
         {openShareModal && (
           <SharePagePopup
             userInfo={{ username: params.username, fullName: "Charming Dc" }}

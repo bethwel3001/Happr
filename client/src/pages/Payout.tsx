@@ -1,4 +1,3 @@
-import { ChartBar } from "lucide-react";
 import { PayoutSettings } from "@/features/payouts";
 
 const Payout = () => {

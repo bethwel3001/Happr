@@ -10,7 +10,7 @@ const Navbar = () => {
   const renderLink = () => {
     switch (userState) {
       case "owner":
-        return <Link to="/dashbord"> Dashboard </Link>;
+        return <Link to="/dashboard"> Dashboard </Link>;
       case "authenticated":
         return <Link to={`/${currentUserName}`}>My Page</Link>;
       case "unauthenticated":

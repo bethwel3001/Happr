@@ -6,10 +6,11 @@ import { formatNaira } from "@/utils/formatters";
 
 const TipUserSection = () => {
   const [name, setName] = useState<string>("");
+  const [xHandle, setXHandle] = useState<string | null>("");
   const [message, setMessage] = useState<string>("");
   const [smilesCount, setSmilesCount] = useState<number>(1);
-  const [pricePerSmile, setPricePerSmile] = useState<number>(300);
 
+  const pricePerSmile = 300;
   const totalAmt = useMemo(
     () => pricePerSmile * smilesCount,
     [pricePerSmile, smilesCount]
@@ -24,7 +25,10 @@ const TipUserSection = () => {
     >
       <h3 className="font-bold text-lg mb-2"> Send Charming Dc Smiles </h3>
 
-      <form className="w-full flex flex-col gap-3 items-center">
+      <form
+        className="w-full flex flex-col gap-3 items-center"
+        onSubmit={e => e.preventDefault()}
+      >
         <div className="w-full h-16 flex items-center gap-2 bg-accent px-3 rounded-md">
           <div className="h-full flex items-center gap-2">
             <span className="text-xl"> 😊 </span>
@@ -45,6 +49,7 @@ const TipUserSection = () => {
 
           <input
             type="number"
+            name="smile_count"
             value={smilesCount}
             onChange={e => setSmilesCount(Number(e.target.value))}
             className="w-14 h-10 flex items-center justify-center bg-background p-2 font-bold text-center text-input-foreground text-lg border-2 rounded-sm transition-all duration-300 focus:border-primary"
@@ -53,12 +58,22 @@ const TipUserSection = () => {
 
         <Input
           type="text"
+          name="name"
           value={name}
-          placeholder="Name or @yourXhandle"
+          placeholder="Name"
           onChange={e => setName(e.target.value)}
         />
 
+        <Input
+          type="text"
+          name="x_handle"
+          value={xHandle ?? ""}
+          placeholder="Your X (twitter) handle - optional"
+          onChange={e => setXHandle(e.target.value || null)}
+        />
+
         <textarea
+          name="message"
           value={message}
           placeholder="Say something nice..."
           onChange={e => setMessage(e.target.value)}

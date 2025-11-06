@@ -42,7 +42,7 @@ const RecentSupportersSection = () => {
       ) : supporters.length > 0 ? (
         <div className="w-full flex flex-col items-center gap-2">
           {supporters.map(supporter => (
-            <DisplaySupporter supporter={supporter} />
+            <DisplaySupporter key={supporter.id} supporter={supporter} />
           ))}
         </div>
       ) : (

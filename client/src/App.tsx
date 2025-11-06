@@ -42,7 +42,6 @@ const App = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/:username" element={<SupportPage />} />
 
           {/* Auth Routes */}
           <Route element={<AuthLayout />}>
@@ -73,6 +72,8 @@ const App = () => {
                 />
               ))}
           </Route>
+
+          <Route path="/:username" element={<SupportPage />} />
         </Routes>
       </BrowserRouter>
 

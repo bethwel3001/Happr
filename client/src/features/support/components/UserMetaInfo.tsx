@@ -15,9 +15,14 @@ const UserMetaInfo = ({ setOpenShareModal }: PageProps) => {
     >
       <div
         aria-label="cover photo wrapper"
-        className="w-full h-48 bg-card bg-[url('/icons/happr-banner.jpg')]
-        bg-center bg-contain"
-      ></div>
+        className="w-full h-52 md:h-64 overflow-hidden"
+      >
+        <img
+          src="/icons/happr-banner.jpg"
+          alt="Charmingdc cover photo"
+          className="w-full h-full object-fill"
+        />
+      </div>
 
       <div className="w-full flex items-center justify-between px-4 [&_span]:h-10 [&_span]:w-10 [&_span]:mt-4">
         <div
