@@ -3,6 +3,7 @@ import useCopyToClipboard from "@/hooks/useCopyToClipboard";
 
 const GreetUser = () => {
   const { copy, copied } = useCopyToClipboard();
+  const userPageLink = `${window.location.origin}/Charmingdc`;
 
   const handleCopy = async (text: string) => {
     try {
@@ -16,11 +17,11 @@ const GreetUser = () => {
     <section className="w-full flex items-center justify-between">
       <div>
         <p className="font-bold text-md mb-[.1rem]"> Hi, Charmingdc, </p>
-        <p className="text-sm"> https://happr.me/Charmingdc </p>
+        <p className="text-sm"> {userPageLink} </p>
       </div>
 
       <button
-        onClick={() => handleCopy("https://happr.me/Charmingdc")}
+        onClick={() => handleCopy(userPageLink)}
         className="bg-card text-card-foreground py-2 px-4 font-bold text-md rounded-full"
       >
         {copied ? "Copied!" : "Copy Link"}
