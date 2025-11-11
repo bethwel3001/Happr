@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String         @id @default(cuid())
+  email           String         @unique
+  password        String?        // nullable for Google users
+  username        String         @unique
+  bio             String?
+  avatar_url      String?
+  display_name    String?
+  phone_number    String?
+  auth_provider   String         @default("local") // "local" or "google"
+  is_verified     Boolean        @default(false)
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+
+  // Relations
+  bank_account    BankAccount?   @relation(fields: [bank_account_id], references: [id], onDelete: SetNull)
+  bank_account_id String?        @unique 
+  refresh_tokens  RefreshToken[]
+  donations       Donation[]     @relation("DonationsReceived") // donations received
+  supports        Donation[]     @relation("DonationsGiven")    // donations given
+
+  @@index([username, email])
+}
+
+model RefreshToken {
+  id         String   @id @default(cuid())
+  token      String   @unique
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now())
+  expires_at DateTime?
+
+  @@index([user_id])
+}
+
+model BankAccount {
+  id             String  @id @default(cuid())
+  bank_name      String
+  account_name   String
+  account_number String  @unique
+  user           User?   @relation
+}
+
+model Donation {
+  id             String   @id @default(cuid())
+  amount         Float
+  message        String?
+  name           String?
+  email          String?
+  is_guest       Boolean  @default(false)
+  created_at     DateTime @default(now())
+
+  // Creator (the one receiving the donation)
+  creator_id     String
+  creator        User     @relation("DonationsReceived", fields: [creator_id], references: [id], onDelete: Cascade)
+
+  // Supporter (the one giving the donation)
+  supporter_id   String?
+  supporter      User?    @relation("DonationsGiven", fields: [supporter_id], references: [id], onDelete: SetNull)
+}
