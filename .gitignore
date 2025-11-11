@@ -24,7 +24,7 @@ coverage
 !.vscode/launch.json
 !.vscode/extensions.json
 *.env
-.env.local
+env-production.txt
 .temp
 .tmp
 pids
