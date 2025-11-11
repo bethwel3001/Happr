@@ -12,6 +12,10 @@ const transporter = nodemailer.createTransport({
   debug: true,
 })
 
+app.get("/", async (_req, res) => {
+  res.json({ message: "SMTP Server is running" })
+})
+
 app.get("/api/send-email", async (req, res) => {
   const { email, username, token, type } = req.query
 
