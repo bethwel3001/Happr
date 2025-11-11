@@ -44,7 +44,7 @@ app.get("/api/send-email", async (req, res) => {
       await transporter.sendMail({
         from: "CharmingDc at Happr <no-reply@happr.me>",
         to: email,
-        subject: "Welcome to Happr 🎉 — Let's get you smiling!",
+        subject: "Welcome to Happr 🎉, Let's get you smiling!",
         html: `
         <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 40px; color: #111827;">
             <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 12px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
@@ -52,11 +52,11 @@ app.get("/api/send-email", async (req, res) => {
             <h2 style="color: #111827; text-align: center;">Welcome to Happr, ${username}! 😊</h2>
 
             <p style="font-size: 16px; line-height: 1.7;">
-                Hi <strong>${username}</strong>, I'm <strong>Samuel</strong> from <strong>Happr</strong> — thank you for joining our creator community!  
+                Hi <strong>${username}</strong>, thank you for joining our creator community!  
             </p>
 
             <p style="font-size: 16px; line-height: 1.7;">
-                Happr lets your fans send <strong>Smiles</strong> — fun, instant tips that go straight to your bank account.  
+                Happr lets your fans send <strong>Smiles</strong>, fun, instant tips that go straight to your bank account.  
                 Whether you're a musician, artist, gamer, or writer, Happr makes it easy to turn your creativity into support.  
             </p>
 
