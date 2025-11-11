@@ -23,16 +23,10 @@ const DisplaySupporters = ({ supporters }: { supporters: Supporter[] }) => {
                     @{supporterName}
                   </a>
                 ) : (
-                  <span
-                    className={`min-w-32 ${
-                      supporter.isAnonymous ? "" : "font-bold"
-                    }`}
-                  >
-                    {supporterName}
-                  </span>
+                  <span className="min-w-32 font-bold">{supporterName}</span>
                 )}
               </td>
-              <td>{supporter.smileCount}x 😊</td>
+              <td>x{supporter.smileCount} 😊</td>
               <td>{formatNaira(supporter.amount)}</td>
               <td className="relative group">
                 <div className="truncate">{supporter.message}</div>

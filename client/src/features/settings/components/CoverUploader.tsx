@@ -1,24 +1,23 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Camera } from "lucide-react";
+import { ImagePlus } from "lucide-react";
 
-type AvatarUploaderProps = {
+type CoverUploaderProps = {
   currentUrl?: string;
-  size?: "small" | "medium" | "large";
+  aspect?: "wide" | "square";
   onFileSelect?: (file: File | null) => void;
 };
 
-const sizeClasses = {
-  small: "w-16 h-16",
-  medium: "w-24 h-24",
-  large: "w-36 h-36"
+const aspectClasses = {
+  wide: "w-full h-32 sm:h-40 md:h-48",
+  square: "w-48 h-48"
 };
 
-const AvatarUploader = ({
+const CoverUploader = ({
   currentUrl,
-  size = "medium",
+  aspect = "wide",
   onFileSelect
-}: AvatarUploaderProps) => {
+}: CoverUploaderProps) => {
   const [preview, setPreview] = useState(currentUrl || "");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,21 +34,21 @@ const AvatarUploader = ({
   };
 
   return (
-    <div className="flex flex-col gap-2 relative">
+    <div className="flex flex-col items-center gap-2 relative w-full">
       <label
-        htmlFor="file-uploader"
-        className="relative w-fit rounded-full overflow-hidden cursor-pointer"
+        htmlFor="cover-uploader"
+        className="relative bg-black/20 text-foreground z-20 rounded-xl overflow-hidden cursor-pointer w-full"
       >
         <img
           src={preview}
-          alt="Profile preview"
-          className={`${sizeClasses[size]} rounded-full object-cover`}
+          alt="Cover preview"
+          className={`${aspectClasses[aspect]} object-cover w-full`}
         />
 
         <div className="absolute inset-0 flex items-center justify-center transition-colors bg-transparent hover:bg-black/40">
-          <Camera
-            aria-label="camera icon"
-            size={36}
+          <ImagePlus
+            aria-label="add cover"
+            size={42}
             className="text-gray-200"
           />
         </div>
@@ -57,7 +56,7 @@ const AvatarUploader = ({
 
       <input
         type="file"
-        id="file-uploader"
+        id="cover-uploader"
         accept="image/*"
         onChange={handleFileChange}
         className="hidden"
@@ -66,4 +65,4 @@ const AvatarUploader = ({
   );
 };
 
-export default AvatarUploader;
+export default CoverUploader;
