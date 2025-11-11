@@ -1,175 +1,147 @@
-# Happr Backend API 
+# Happr API 
 
 <img src="./public/docs.png" />
 
-## Project Overview 
-The Happr Backend API is a robust and scalable solution built with NestJS and TypeScript, designed to power a modern web application. It features secure user authentication, email verification, and efficient background job processing, providing a solid foundation for creator-focused platforms. This API aims for high performance, maintainability, and extensibility, offering a comprehensive suite of tools for managing user data and interactions.
-
-[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)](https://nestjs.com/)
-[![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
-[![BullMQ](https://img.shields.io/badge/BullMQ-FF5733?style=for-the-badge&logo=bullmq&logoColor=white)](https://bullmq.io/)
-[![npm version](https://img.shields.io/badge/npm-v0.0.1-blue?style=for-the-badge)](https://www.npmjs.com/)
-
-## Table of Contents
-*   [Overview](#overview)
-*   [Features](#features)
-*   [Technologies Used](#technologies-used)
-*   [Getting Started](#getting-started)
-    *   [Installation](#installation)
-    *   [Environment Variables](#environment-variables)
-*   [API Documentation](#api-documentation)
-*   [Usage](#usage)
-*   [Contributing](#contributing)
-*   [License](#license)
-*   [Author Info](#author-info)
-
----
-
-# Happr Backend API
-
 ## Overview
-The Happr Backend API is a robust and scalable solution built with NestJS (TypeScript) and Prisma ORM for PostgreSQL, featuring user authentication, email verification, and asynchronous background job processing with BullMQ.
+Happr API is a robust backend service built with TypeScript, NestJS, and Prisma, designed to power a creator platform where fans can send instant "Smiles" (donations). It integrates with Redis for job queuing (BullMQ), Cloudinary for media uploads, and Nodemailer for email services, ensuring a scalable and high-performance foundation.
 
 ## Features
-- `NestJS`: Provides a powerful framework for building efficient and scalable server-side applications.
-- `TypeScript`: Ensures type safety and improves code maintainability and developer experience.
-- `Prisma ORM`: Enables type-safe database access and simplifies interactions with the PostgreSQL database.
-- `PostgreSQL`: A powerful, open-source object-relational database system.
-- `JWT`: Facilitates secure, stateless authentication and authorization for API requests.
-- `argon2`: A modern, strong password hashing algorithm for enhanced security.
-- `BullMQ`: Manages asynchronous background jobs, such as sending emails, improving application responsiveness.
-- `Nodemailer`: Handles email sending for user verification, welcome messages, and other notifications.
-- `Swagger`: Generates interactive API documentation for easy exploration and testing of endpoints.
-- `CORS`: Configured for secure Cross-Origin Resource Sharing with the frontend application.
+-   **Authentication & Authorization**: Secure user registration, login with JWT, email verification, and refresh token management using Argon2 for password hashing.
+-   **User Management**: Retrieve and update user profiles, including avatar uploads via Cloudinary and BullMQ queues.
+-   **Email Services**: Asynchronous email sending for verification and welcome messages powered by Nodemailer and BullMQ.
+-   **Background Job Processing**: Efficiently handle tasks like image uploads and email delivery using Redis and BullMQ.
+-   **Database Management**: PostgreSQL database integration via Prisma ORM for seamless data interactions and schema migrations.
+-   **API Documentation**: Interactive Swagger UI for comprehensive API exploration and testing (password protected).
+-   **Containerization**: Docker support for easy deployment and environment consistency.
+-   **Rate Limiting**: Built-in API rate limiting using NestJS Throttler.
 
 ## Getting Started
-To get the Happr Backend API up and running on your local machine, follow these steps.
+To get the Happr API up and running on your local machine, follow these steps.
 
 ### Installation
-To set up the project locally, run the following commands:
-
--   🔗 **Clone the repository:**
+1.  **Clone the Repository**:
     ```bash
-    git clone <repository-url>
-    cd server
+    git clone https://github.com/Charmingdc/Happr.git
+    cd Happr/server
     ```
--   📦 **Install dependencies:**
+
+2.  **Install Dependencies**:
     ```bash
     npm install
-    # or
-    yarn install
     ```
--   ⚙️ **Generate Prisma client:**
+
+3.  **Generate Prisma Client**:
     ```bash
-    npx prisma generate --schema ./prisma/schema.prisma
+    npx prisma generate
     ```
--   💾 **Run database migrations:**
+
+4.  **Database Migration**:
+    Ensure your PostgreSQL database is running and the `DATABASE_URL` environment variable is correctly set.
     ```bash
-    npx prisma migrate dev --schema ./prisma/schema.prisma
+    npx prisma migrate deploy
     ```
--   ▶️ **Start the development server:**
+    For local development with schema changes, you might use:
     ```bash
-    npm run start:dev
+    npx prisma migrate dev --name init --schema ./prisma/schema.prisma
+    ```
+
+5.  **Build the Project**:
+    ```bash
+    npm run build
     ```
 
 ### Environment Variables
-The project requires the following environment variables to be set. Create a `.env` file in the root of the `server` directory and populate it with your specific values.
+Create a `.env` file in the `server` directory and populate it with the following variables. Examples are provided for clarity.
 
--   `DATABASE_URL`: Connection string for your PostgreSQL database.
-    *   Example: `postgresql://user:password@localhost:5432/happr_db?schema=public`
--   `REDIS_URL`: Connection string for your Redis instance, used by BullMQ.
-    *   Example: `redis://localhost:6379`
--   `JWT_SECRET`: A strong secret key for signing JWT tokens.
-    *   Example: `YOUR_SUPER_SECRET_JWT_KEY`
--   `FRONTEND_DOMAIN`: The URL of your frontend application (for CORS and email links).
-    *   Example: `http://localhost:3000`
--   `BACKEND_DOMAIN`: The base URL of your backend API (for Swagger documentation).
-    *   Example: `http://localhost:5000`
--   `PORT`: The port number on which the API server will listen.
-    *   Example: `5000`
--   `GMAIL_AUTH_USER`: Your Gmail account email for Nodemailer.
-    *   Example: `your.email@gmail.com`
--   `GMAIL_AUTH_PASS`: Your Gmail app password for Nodemailer.
-    *   Example: `your_gmail_app_password`
+```env
+DATABASE_URL="postgresql://user:password@host:port/database?schema=public"
+JWT_SECRET="a_very_strong_and_long_jwt_secret_key_randomly_generated"
+GMAIL_AUTH_USER="your-email@gmail.com"
+GMAIL_AUTH_PASS="your_gmail_app_password"
+FRONTEND_DOMAIN="http://localhost:5173"
+BACKEND_DOMAIN="http://localhost:8080"
+PORT=8080
+REDIS_URL="rediss://default:your_redis_password@your_redis_host:port"
+CLOUDINARY_CLOUD_NAME="your_cloudinary_cloud_name"
+CLOUDINARY_API_KEY="your_cloudinary_api_key"
+CLOUDINARY_API_SECRET="your_cloudinary_api_secret"
+SWAGGER_AUTH_USER="delusional"
+SWAGGER_AUTH_PASS="asdf"
+AUTH0_DOMAIN="your-auth0-domain.us.auth0.com" # Currently not used
+AUTH0_CLIENT_ID="your-client-id" # Currently not used
+AUTH0_CLIENT_SECRET="your-client-secret" # Currently not used
+```
+**Note**: For `GMAIL_AUTH_PASS`, you need to generate an App Password for your Gmail account if you have 2-Factor Authentication enabled.
+
+### Running the Application
+To start the application in development mode:
+```bash
+npm run start:dev
+```
+To start the application in production mode:
+```bash
+npm run start:prod
+```
+The application will be accessible at `http://localhost:8080` (or the `PORT` you configured). The API documentation (Swagger UI) will be available at `http://localhost:8080` as well, protected by Basic Auth credentials (`SWAGGER_AUTH_USER`, `SWAGGER_AUTH_PASS`).
 
 ## API Documentation
-The API documentation is automatically generated using Swagger. Once the server is running, you can access the interactive documentation at `[BACKEND_DOMAIN]/docs`.
+The API provides a comprehensive set of endpoints for user authentication, profile management, and more. All endpoints are prefixed with `/api/v1`.
 
 ### Base URL
-The API root path for all endpoints is:
-`[BACKEND_DOMAIN]/api/v1`
+`http://localhost:8080/api/v1` (or your configured `BACKEND_DOMAIN`)
 
 ### Endpoints
 
 #### GET /auth/username-availability
-Checks if a given username is available for registration.
-
+**Overview**: Checks if a given username is available for registration.
 **Request**:
-Query Parameters:
+```json
+// Query Parameters
+{
+  "username": "example_username"
+}
 ```
-username: string (The username to check)
-```
-
 **Response**:
 ```json
 {
   "success": true,
-  "message": "johndoe is available",
-  "data": []
+  "data": [],
+  "message": "example_username is available"
 }
 ```
-
 **Errors**:
-- `400 Bad Request`: `{"success": false, "message": "\"johndoe\" is already taken", "data": []}`
+-   `400 Bad Request`: "example_username" is already taken
 
 #### POST /auth/register
-Registers a new user with email, username, and password.
-
+**Overview**: Registers a new user with email, username, and password. An email verification link is sent upon successful registration.
 **Request**:
-Payload Structure:
 ```json
 {
-  "email": "string",
-  "username": "string",
-  "password": "string"
-}
-```
-Example:
-```json
-{
-  "email": "john.doe@example.com",
-  "username": "johndoe",
+  "email": "test@example.com",
+  "username": "testuser",
   "password": "StrongPassword123!"
 }
 ```
-
 **Response**:
 ```json
 {
   "success": true,
-  "message": "Account created. Please verify your email",
-  "data": []
+  "data": [],
+  "message": "Account created. Please verify your email"
 }
 ```
-
 **Errors**:
-- `400 Bad Request`: `{"success": false, "message": "Account already exists", "data": []}`
-- `400 Bad Request`: Validation errors for `email`, `username`, `password` fields.
+-   `400 Bad Request`: Validation errors (e.g., "Email is required", "Password must contain at least one uppercase letter", "Account already exists")
 
 #### GET /auth/verify-email
-Verifies a user's email address using a provided token.
-
+**Overview**: Verifies a user's email address using a token received in their mailbox.
 **Request**:
-Query Parameters:
+```json
+// Query Parameters
+{
+  "token": "generated_jwt_token_for_email_verification"
+}
 ```
-token: string (The email verification token)
-```
-Example: `/api/v1/auth/verify-email?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
-
 **Response**:
 ```json
 {
@@ -178,76 +150,200 @@ Example: `/api/v1/auth/verify-email?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..
   "data": []
 }
 ```
-
 **Errors**:
-- `400 Bad Request`: `{"success": false, "message": "Invalid or expired token!", "data": []}`
-- `400 Bad Request`: `{"success": false, "message": "User not found", "data": []}`
-- `400 Bad Request`: `{"success": false, "message": "Email already verified, just login!", "data": []}`
+-   `400 Bad Request`: "Invalid or expired token!", "User not found", "Email already verified, just login!"
 
 #### POST /auth/signin
-Authenticates a user and issues JWT access and refresh tokens via HTTP-only cookies.
-
+**Overview**: Authenticates a user with their email and password. Sets `access_token` and `refresh_token` as HTTP-only cookies.
 **Request**:
-Payload Structure:
 ```json
 {
-  "email": "string",
-  "password": "string"
-}
-```
-Example:
-```json
-{
-  "email": "john.doe@example.com",
+  "email": "test@example.com",
   "password": "StrongPassword123!"
 }
 ```
-
 **Response**:
-Cookies are set: `access_token` (HTTP-only, secure, lax, 30m expiry), `refresh_token` (HTTP-only, secure, lax, 7d expiry).
 ```json
 {
   "success": true,
   "message": "User signedin successfully",
+  "token": "jwt_access_token_string",
   "data": []
 }
 ```
-
 **Errors**:
-- `401 Unauthorized`: `{"success": false, "message": "Invalid credentials", "data": []}`
-- `401 Unauthorized`: `{"success": false, "message": "Your account has not been verified yet, kindly check your email", "data": []}`
+-   `401 Unauthorized`: "Invalid credentials", "Your account has not been verified yet, kindly check your email"
+-   `400 Bad Request`: Validation errors (e.g., "Email is required", "password must be at least 5 characters long")
 
-## Usage
-After successfully installing and starting the backend, you can interact with the API using any HTTP client (e.g., Postman, Insomnia, or your frontend application).
+#### GET /user/me
+**Overview**: Retrieves the detailed profile information of the authenticated user.
+**Authorization**: Bearer Token
+**Request**:
+_No request body_
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "cuid_id_string",
+    "email": "user@example.com",
+    "username": "testuser",
+    "bio": "A passionate creator.",
+    "display_name": "Test User",
+    "avatar_url": "https://res.cloudinary.com/your_cloud_name/image/upload/v123456789/happr/avatars/avatar.jpg",
+    "phone_number": "+2348012345678",
+    "auth_provider": "local",
+    "is_verified": true,
+    "created_at": "2023-10-27T10:00:00.000Z",
+    "updated_at": "2023-10-27T10:30:00.000Z",
+    "bank_account": {
+      "bank_name": "Example Bank",
+      "account_name": "Test User",
+      "account_number": "1234567890"
+    },
+    "stats": {
+      "total_donations_received": 5,
+      "total_donations_given": 2,
+      "total_amount_received": 150.00,
+      "total_amount_given": 25.00,
+      "total_supporters": 3
+    },
+    "recent_donations": [
+      {
+        "id": "donation_cuid_1",
+        "amount": 10.00,
+        "message": "Great content!",
+        "name": "Anonymous Fan",
+        "email": null,
+        "is_guest": true,
+        "created_at": "2024-07-20T10:00:00.000Z",
+        "supporter": null
+      }
+    ]
+  },
+  "message": "User details and donation stats fetched successfully!"
+}
+```
+**Errors**:
+-   `401 Unauthorized`: "No token provided", "Invalid or expired token"
+-   `404 Not Found`: "User does not exist"
+-   `403 Forbidden`: "You account is not verified yet, check your email"
 
--   **Access API Documentation:**
-    Once the server is running, navigate to `http://localhost:5000/docs` (or your configured `BACKEND_DOMAIN`/docs) in your web browser to explore all available endpoints, request/response schemas, and even test them directly using Swagger UI.
+#### PATCH /user/:id
+**Overview**: Updates specific user profile information. Supports optional avatar upload.
+**Authorization**: Bearer Token
+**Request**:
+```json
+// Path Parameter: id - User ID
+// Example Body with form-data (for avatar upload) or JSON (for other fields)
+{
+  "username": "new_testuser",
+  "bio": "Updated bio text.",
+  "display_name": "New Display Name",
+  "phone_number": "+2349012345678",
+  "avatar": "<File: avatar.jpg>" // Use form-data for file upload
+}
+```
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "cuid_id_string",
+    "email": "user@example.com",
+    "username": "new_testuser",
+    "bio": "Updated bio text.",
+    "display_name": "New Display Name",
+    "avatar_url": "https://res.cloudinary.com/your_cloud_name/image/upload/v123456789/happr/avatars/new_avatar.jpg",
+    "phone_number": "+2349012345678",
+    "auth_provider": "local",
+    "is_verified": true,
+    "created_at": "2023-10-27T10:00:00.000Z",
+    "updated_at": "2023-10-27T11:00:00.000Z"
+  },
+  "message": "User profile updated successfuly!"
+}
+```
+**Errors**:
+-   `401 Unauthorized`: "No token provided", "Invalid or expired token"
+-   `404 Not Found`: "User does not exist"
+-   `403 Forbidden`: "You account is not verified yet, check your email"
+-   `415 Unsupported Media Type`: "Invalid file type. Only JPEG, PNG, JPG, and WEBP are allowed." (for avatar upload)
+-   `400 Bad Request`: Validation errors (e.g., "phone_number must be a valid phone number")
 
--   **Example Flow:**
-    1.  Check username availability using `GET /auth/username-availability`.
-    2.  Register a new user with `POST /auth/register`. An email verification link will be sent.
-    3.  Click the verification link from the email, which calls `GET /auth/verify-email`.
-    4.  Sign in using `POST /auth/signin` to receive authentication cookies.
+#### DELETE /user/:id
+**Overview**: Deletes the authenticated user's account. The `id` in the path must match the authenticated user's ID.
+**Authorization**: Bearer Token
+**Request**:
+_No request body_
+**Response**:
+```json
+{
+  "success": true,
+  "data": [],
+  "message": "user account deleted successfully!"
+}
+```
+**Errors**:
+-   `401 Unauthorized`: "No token provided", "Invalid or expired token"
+-   `403 Forbidden`: "You are not authorized to delete this account", "You account is not verified yet, check your email"
+-   `404 Not Found`: "user does not exist"
+
+## Technologies Used
+
+| Technology       | Description                                                 | Link                                               |
+| :--------------- | :---------------------------------------------------------- | :------------------------------------------------- |
+| **Node.js**      | JavaScript runtime for server-side execution.               | [nodejs.org](https://nodejs.org/en/)               |
+| **NestJS**       | Progressive Node.js framework for building efficient APIs.  | [nestjs.com](https://nestjs.com/)                  |
+| **TypeScript**   | Statically typed superset of JavaScript.                    | [typescriptlang.org](https://www.typescriptlang.org/) |
+| **Prisma**       | Next-generation ORM for Node.js and TypeScript.             | [prisma.io](https://www.prisma.io/)                |
+| **PostgreSQL**   | Powerful, open-source relational database system.           | [postgresql.org](https://www.postgresql.org/)      |
+| **BullMQ**       | Robust, Redis-backed queue for Node.js.                     | [docs.bullmq.io](https://docs.bullmq.io/)          |
+| **Redis**        | In-memory data store for caching and message brokering.     | [redis.io](https://redis.io/)                      |
+| **Cloudinary**   | Cloud-based image and video management.                     | [cloudinary.com](https://cloudinary.com/)          |
+| **Nodemailer**   | Module for sending emails from Node.js applications.        | [nodemailer.com](https://nodemailer.com/)          |
+| **JWT**          | JSON Web Tokens for secure API authentication.              | [jwt.io](https://jwt.io/)                          |
+| **Argon2**       | Strong password hashing function.                           | [github.com/argon2/argon2](https://github.com/P-H-C/phc-winner-argon2) |
+| **Docker**       | Containerization platform for consistent environments.      | [docker.com](https://www.docker.com/)              |
+| **Swagger**      | API documentation with interactive UI.                      | [swagger.io](https://swagger.io/)                  |
+| **Helmet**       | Express middleware for securing Node.js apps.               | [helmetjs.github.io](https://helmetjs.github.io/)  |
+| **Throttler**    | NestJS module for rate limiting.                            | [docs.nestjs.com/security/rate-limiting](https://docs.nestjs.com/security/rate-limiting) |
 
 ## Contributing
-We welcome contributions to the Happr Backend API! If you're interested in improving the project, please follow these guidelines:
+We welcome contributions to the Happr API project! 🎉 To contribute:
 
--   🙋‍♀️ **Fork the repository** and clone it to your local machine.
--   🌱 **Create a new branch** for your feature or bug fix: `git checkout -b feature/your-feature-name` or `git checkout -b bugfix/issue-description`.
--   ✨ **Make your changes**, ensuring they adhere to the project's coding standards.
--   📝 **Write clear, concise commit messages**.
--   🧪 **Add or update tests** for your changes.
--   🚀 **Push your branch** to your forked repository.
--   🔄 **Open a pull request** to the `main` branch of the original repository, describing your changes and their purpose.
+1.  **Fork the repository** and clone it to your local machine.
+2.  **Create a new branch** for your feature or bug fix: `git checkout -b feature/your-feature-name`.
+3.  **Implement your changes**, ensuring they adhere to the project's coding standards.
+4.  **Write comprehensive tests** for your new features or bug fixes.
+5.  **Run tests** to ensure everything passes: `npm test`.
+6.  **Commit your changes** with a clear and descriptive message.
+7.  **Push your branch** to your forked repository.
+8.  **Open a Pull Request** to the `main` branch of the original repository.
+
+Please ensure your code is well-documented and follows the existing architectural patterns.
 
 ## License
-This project is currently UNLICENSED, as specified in `package.json`.
+This project is licensed under the UNLICENSED.
 
 ## Author Info
-Developed with passion and precision.
 
--   Twitter: [Your Twitter Handle](https://x.com/TuoyoS26091)
+Connect with the project maintainer:
+
+-   **LinkedIn**: [Your LinkedIn Profile](https://www.linkedin.com/in/your_username)
+-   **Twitter**: [Your Twitter Handle](https://twitter.com/your_username)
+-   **Portfolio**: [Your Personal Website](https://www.yourportfolio.com)
 
 ---
+
+[![Node.js](https://img.shields.io/badge/Node.js-20-brightgreen)](https://nodejs.org/)
+[![NestJS](https://img.shields.io/badge/NestJS-11-red)](https://nestjs.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-6-blueviolet)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-DB-blue)](https://www.postgresql.org/)
+[![BullMQ](https://img.shields.io/badge/BullMQ-5.x-orange)](https://docs.bullmq.io/)
+[![Redis](https://img.shields.io/badge/Redis-Queue-red)](https://redis.io/)
+[![Docker](https://img.shields.io/badge/Docker-Container-blue)](https://www.docker.com/)
+[![License: UNLICENSED](https://img.shields.io/badge/License-UNLICENSED-lightgrey)](https://choosealicense.com/licenses/unlicense/)
 
 [![Readme was generated by Dokugen](https://img.shields.io/badge/Readme%20was%20generated%20by-Dokugen-brightgreen)](https://www.npmjs.com/package/dokugen)
