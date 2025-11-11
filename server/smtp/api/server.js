@@ -1,5 +1,8 @@
-const express = require("express")
-const nodemailer = require("nodemailer")
+import express from "express"
+import nodemailer from "nodemailer"
+import dotenv from "dotenv"
+dotenv.config()
+
 const app = express()
 
 const transporter = nodemailer.createTransport({
@@ -99,4 +102,6 @@ app.get("/api/send-email", async (req, res) => {
   }
 })
 
-module.exports = app
+app.listen("5000", () => {
+  console.log("SMTP Server is running on port 5000")
+})
