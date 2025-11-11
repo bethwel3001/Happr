@@ -28,7 +28,7 @@ app.get("/api/send-email", async (req, res) => {
 
   try {
     if (type === "verification") {
-      const verifyLink = `${process.env.FRONTEND_DOMAIN}/complete-setup?token=${token}&username=${username}`
+      const verifyLink = `${process.env.FRONTEND_DOMAIN}/email-verification?token=${token}&username=${username}`
       
       await transporter.sendMail({
         from: "Happr",
