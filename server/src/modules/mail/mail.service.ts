@@ -48,7 +48,11 @@ export class MailService {
     });
   }
 
-  async sendPayoutOtp(otp: string, username: string): Promise<EmailResponse> {
+  async sendPayoutOtp(
+    email: string,
+    otp: string,
+    username: string,
+  ): Promise<EmailResponse> {
     return this.sendEmailRequest({
       username,
       otp,
