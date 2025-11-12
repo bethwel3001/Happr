@@ -6,6 +6,39 @@ export class GetUserDetailsDTO {
   _id: string;
 }
 
+export class payoutDetailsInitDTO {
+  @ApiProperty({ description: 'The name of the bank' })
+  @IsString()
+  bank_name: string;
+
+  @ApiProperty({ description: 'The account number of the account holder' })
+  @IsString()
+  account_number: string;
+
+  @ApiProperty({ description: 'The name of the account holder' })
+  @IsString()
+  account_name: string;
+}
+
+export class updatePayoutDetailsDTO {
+  @ApiProperty({ description: 'The name of the bank' })
+  @IsString()
+  bank_name: string;
+
+  @ApiProperty({ description: 'The account number of the account holder' })
+  @IsString()
+  account_number: string;
+
+  @ApiProperty({ description: 'The name of the account holder' })
+  @IsString()
+  account_name: string;
+
+  @ApiPropertyOptional({ description: 'one time password' })
+  @IsOptional()
+  @IsString()
+  otp?: string;
+}
+
 export class UpdateUserDTO {
   @ApiPropertyOptional({ description: 'The username of the user' })
   @IsOptional()

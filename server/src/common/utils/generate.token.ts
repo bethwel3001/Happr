@@ -1,5 +1,5 @@
 import { JwtService } from '@nestjs/jwt';
-
+import crypto from 'crypto';
 const jwtService = new JwtService();
 
 export function generateAccessToken(_id: string, email: string) {
@@ -31,4 +31,9 @@ export function generateMailToken(
     expiresIn: '4h',
   });
   return { email_token: token };
+}
+
+export function generateCryptographicOtp() {
+  const otp = crypto.randomBytes(6).toString('hex');
+  return { otp: otp };
 }
