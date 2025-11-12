@@ -4,18 +4,19 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import {
-  GetUserDetailsDTO,
-  payoutDetailsInitDTO,
-  UpdateUserDTO,
-} from '../../dtos/user.dto';
+import { GetUserDetailsDTO, UpdateUserDTO } from '../../dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
 import { generateCryptographicOtp } from '../../common/utils/generate.token';
 import { redis } from '../../common/config/redis.config';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @InjectQueue('email-queue') private emailQueue: Queue,
+  ) {}
 
   async getUserDetails(dto: GetUserDetailsDTO): Promise<ApiResponseDTO> {
     const user = await this.prisma.user.findUnique({
@@ -224,12 +225,20 @@ export class UserService {
       });
 
     const { otp } = generateCryptographicOtp();
-    (redis as any).set(`payout-otp:${_id}`, otp, 'EX', 300);
+    await redis.set(`payout-otp:${_id}`, otp, 'EX', 300);
+
+    await this.emailQueue.add('send-verification', {
+      type: 'payout-otp',
+      data: {
+        username: user.username,
+        otp: otp,
+      },
+    });
 
     return {
       success: true,
       message: 'OTP sent successfully.',
-      data: [],
+      data: { otp },
     };
   }
 }
