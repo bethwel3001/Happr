@@ -239,7 +239,6 @@ export class UserService {
     return {
       success: true,
       message: 'OTP sent successfully.',
-      data: { otp },
     };
   }
 }

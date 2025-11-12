@@ -54,6 +54,7 @@ export class MailService {
     username: string,
   ): Promise<EmailResponse> {
     return this.sendEmailRequest({
+      email,
       username,
       otp,
       type: 'otp',
