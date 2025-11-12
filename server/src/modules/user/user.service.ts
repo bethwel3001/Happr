@@ -7,7 +7,7 @@ import {
 import { PrismaService } from '../../../prisma/prisma.service';
 import {
   GetUserDetailsDTO,
-  updatePayoutDetailsDTO,
+  UpdatePayoutDetailsDTO,
   UpdateUserDTO,
 } from '../../dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
@@ -258,7 +258,7 @@ export class UserService {
 
   async updatePayoutDetails(
     userId: string,
-    dto: updatePayoutDetailsDTO,
+    dto: UpdatePayoutDetailsDTO,
   ): Promise<ApiResponseDTO> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -293,25 +293,23 @@ export class UserService {
       where: { id: userId },
     });
 
-    let bankAccount;
-
     if (existingBankAccount) {
-      bankAccount = await this.prisma.bankAccount.update({
+      await this.prisma.bankAccount.update({
         where: { id: userId },
         data: {
-          bank_name: dto.bank_name,
-          account_name: dto.account_name,
-          account_number: dto.account_number,
+          bank_name: dto.bankName,
+          account_name: dto.accountName,
+          account_number: dto.accountNumber,
           updated_at: new Date(),
         },
       });
     } else {
-      bankAccount = await this.prisma.bankAccount.create({
+      await this.prisma.bankAccount.create({
         data: {
           id: userId,
-          bank_name: dto.bank_name,
-          account_name: dto.account_name,
-          account_number: dto.account_number,
+          bank_name: dto.bankName,
+          account_name: dto.accountName,
+          account_number: dto.accountNumber,
         },
       });
     }
@@ -321,9 +319,9 @@ export class UserService {
     return {
       success: true,
       data: {
-        bank_name: bankAccount.bank_name,
-        account_name: bankAccount.account_name,
-        account_number: bankAccount.account_number,
+        bank_name: dto.bankName,
+        account_name: dto.accountName,
+        account_number: dto.accountNumber,
       },
       message: 'Payout details updated successfully.',
     };
