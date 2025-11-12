@@ -12,7 +12,7 @@ const checkUsernameAvailability = async (
 ): Promise<UsernameAvailability> => {
   try {
     const res = await axios.get<ApiResponse<[]>>(
-      `/api/v1/auth/username?username=${username}`
+      `/api/v1/auth/username?username=${username.toLowerCase()}`
     );
 
     return {

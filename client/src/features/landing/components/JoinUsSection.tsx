@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { isAxiosError } from "axios";
 import { motion, MotionConfig } from "motion/react";
 import { toast } from "sonner";
 import { useUsernameAvailability } from "@/features/auth";
@@ -22,7 +23,7 @@ const JoinUsSection = () => {
     const result = await refetch();
 
     if (result.isError) {
-      if (result?.error?.response?.data?.message)
+      if (isAxiosError(result.error) && result?.error?.response?.data?.message)
         toast.error(result.error.response.data.message);
       else toast.error("Failed to check username");
 
