@@ -12,12 +12,11 @@ import {
   HttpCode,
   UnsupportedMediaTypeException,
   BadRequestException,
-  Post,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { AuthGuard } from '../../common/guards/auth.guard';
-import { payoutDetailsInitDTO, UpdateUserDTO } from '../../dtos/user.dto';
+import { UpdateUserDTO } from '../../dtos/user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -99,17 +98,27 @@ export class UserController {
     return this.userService.deleteUserAccount(req.user._id, id);
   }
 
-  @Post('payout/init')
+  @Get('generate-otp')
   @HttpCode(200)
   @ApiOperation({
-    summary: 'Initiate payout settings update (send OTP)',
-    description: 'Sends an OTP to verify user before updating payout settings.',
+    summary: 'Generate OTP for payout or other use cases',
+    description:
+      'Sends an OTP to the user email to verify before updating sensitive info',
   })
   @UseGuards(AuthGuard)
-  async getUpdatePayoutSettingsOtp(
-    @Body() dto: payoutDetailsInitDTO,
-    @Req() req: any,
-  ) {
-    return this.userService.getUpdatePayoutSettingsOtp(req.user._id);
+  async requestPayoutOtp(@Req() req: any) {
+    const userId = req?.user._id as string;
+    return this.userService.generateOtp(userId);
+  }
+
+  @Patch('payout-details')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Update payout details',
+    description: 'Updates the payout details of the authenticated user.',
+  })
+  @UseGuards(AuthGuard)
+  async updatePayoutDetails(@Req() req: any) {
+    return 'hello';
   }
 }

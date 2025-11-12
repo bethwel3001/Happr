@@ -207,7 +207,7 @@ export class UserService {
     };
   }
 
-  async getUpdatePayoutSettingsOtp(_id: string): Promise<ApiResponseDTO> {
+  async generateOtp(_id: string): Promise<ApiResponseDTO> {
     const user = await this.prisma.user.findUnique({ where: { id: _id } });
 
     if (!user)
@@ -225,10 +225,10 @@ export class UserService {
       });
 
     const { otp } = generateCryptographicOtp();
-    await redis.set(`payout-otp:${_id}`, otp, 'EX', 300);
+    await redis.set(`otp:${_id}`, otp, 'EX', 300);
 
-    await this.emailQueue.add('send-payout-otp', {
-      type: 'payout-otp',
+    await this.emailQueue.add('send-otp', {
+      type: 'otp',
       data: {
         email: user.email,
         username: user.username,

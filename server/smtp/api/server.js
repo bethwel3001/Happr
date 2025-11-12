@@ -78,7 +78,7 @@ app.get('/api/send-email', async (req, res) => {
           </div>
         `,
       });
-    } else if (type === 'payout-otp') {
+    } else if (type === 'otp') {
       await transporter.sendMail({
         from: `"Happr Payout Settings" <${process.env.GMAIL_AUTH_USER}>`,
         to: email,
