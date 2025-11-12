@@ -25,7 +25,7 @@ app.get('/', (_req, res) => {
 });
 
 app.get('/api/send-email', async (req, res) => {
-  const { email, username, token, expiry, type } = req.query;
+  const { otp, email, username, token, expiry, type } = req.query;
 
   if (!email || !username || !type) {
     return res.status(400).json({ error: 'Missing required parameters' });
@@ -33,7 +33,7 @@ app.get('/api/send-email', async (req, res) => {
 
   try {
     if (type === 'verification') {
-      const verifyLink = `${process.env.FRONTEND_DOMAIN}/complete-setup?token=${token}&username=${username}`;
+      const verifyLink = `${process.env.FRONTEND_DOMAIN}/email-verification?token=${token}&username=${username}`;
       await transporter.sendMail({
         from: `"Happr" <${process.env.GMAIL_AUTH_USER}>`,
         to: email,
@@ -74,6 +74,26 @@ app.get('/api/send-email', async (req, res) => {
               <p style="font-size: 14px; color: #6b7280;">Made with ❤️ in Nigeria. Built for creators who deserve to smile.</p>
               <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
               <p style="font-size: 13px; color: #9ca3af; text-align: center;">&copy; ${new Date().getFullYear()} Happr. All rights reserved.<br/>Made with love. Paid in Smiles.</p>
+            </div>
+          </div>
+        `,
+      });
+    } else if (type === 'payout-otp') {
+      await transporter.sendMail({
+        from: `"Happr Payout Settings" <${process.env.GMAIL_AUTH_USER}>`,
+        to: email,
+        subject: 'OTP to Update Your Payout Settings',
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 40px; color: #111827;">
+            <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+              <h2 style="text-align: center; color: #111827;">Update Payout Settings</h2>
+              <p style="font-size: 16px; line-height: 1.7;">Hi <strong>${username}</strong>, you requested an OTP to change your payout information.</p>
+              <p style="font-size: 16px; line-height: 1.7;">Enter the OTP below on your dashboard to securely update your bank information:</p>
+              <h2 style="background-color: #f3f4f6; display: inline-block; padding: 12px 24px; border-radius: 6px; letter-spacing: 3px; font-size: 28px; color: #111; text-align: center;">${otp}</h2>
+              <p style="margin-top: 16px; font-size: 14px; color: #555;">This OTP is valid for <strong>${expiry}</strong>. Do not share it with anyone.</p>
+              <p style="margin-top: 16px; font-size: 14px; color: #555;">If you did not request this, you can safely ignore this email. Your bank details remain secure and encrypted.</p>
+              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+              <p style="font-size: 13px; color: #9ca3af; text-align: center;">&copy; ${new Date().getFullYear()} Happr. All rights reserved.</p>
             </div>
           </div>
         `,

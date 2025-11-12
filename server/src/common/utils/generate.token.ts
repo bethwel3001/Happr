@@ -34,6 +34,6 @@ export function generateMailToken(
 }
 
 export function generateCryptographicOtp() {
-  const otp = crypto.randomBytes(6).toString('hex');
+  const otp = crypto.randomBytes(4).toString('hex');
   return { otp: otp };
 }
