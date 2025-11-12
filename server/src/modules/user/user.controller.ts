@@ -21,7 +21,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import type { Express } from 'express';
-
+import { updatePayoutDetailsDTO } from '../../dtos/user.dto';
 @ApiTags('User')
 @ApiBearerAuth()
 @Controller('user')
@@ -115,10 +115,15 @@ export class UserController {
   @HttpCode(200)
   @ApiOperation({
     summary: 'Update payout details',
-    description: 'Updates the payout details of the authenticated user.',
+    description:
+      'Updates the payout details of the authenticated user with OTP verification.',
   })
   @UseGuards(AuthGuard)
-  async updatePayoutDetails(@Req() req: any) {
-    return 'hello';
+  async updatePayoutDetails(
+    @Req() req: any,
+    @Body() dto: updatePayoutDetailsDTO,
+  ) {
+    const userId = req.user._id;
+    return this.userService.updatePayoutDetails(userId, dto);
   }
 }
