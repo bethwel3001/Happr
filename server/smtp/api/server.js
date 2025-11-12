@@ -1,63 +1,85 @@
-import express from "express"
-import nodemailer from "nodemailer"
-import dotenv from "dotenv"
-dotenv.config()
+import express from 'express';
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const app = express()
+const app = express();
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  service: 'gmail',
   auth: {
     user: process.env.GMAIL_AUTH_USER,
     pass: process.env.GMAIL_AUTH_PASS,
   },
   logger: true,
   debug: true,
-})
+});
 
-app.get("/", async (_req, res) => {
-  res.json({ message: "SMTP Server is running" })
-})
+app.get('/', async (_req, res) => {
+  res.json({ message: 'SMTP Server is running' });
+});
 
-app.get("/api/send-email", async (req, res) => {
-  const { email, username, token, type } = req.query
+app.get('/api/send-email', async (req, res) => {
+  const { email, username, token, expiry, type } = req.query;
 
   if (!email || !username || !type) {
-    return res.status(400).json({ error: "Missing required parameters" })
+    return res.status(400).json({ error: 'Missing required parameters' });
   }
 
   try {
-    if (type === "verification") {
-      const verifyLink = `${process.env.FRONTEND_DOMAIN}/email-verification?token=${token}&username=${username}`
-      
-      await transporter.sendMail({
-        from: "Happr",
+    if (type === 'verification') {
+      const verifyLink = `${process.env.FRONTEND_DOMAIN}/complete-setup?token=${token}&username=${username}`;
+
+      transporter.sendMail({
+        from: 'Happr',
         to: email,
-        subject: "Verify your email address to complete your account registration",
+        subject: 'Verify your email to complete your registration',
         html: `
-                <h2>Hey ${username}, thanks for registering an account with us, to complete this registration</h2>
-                <p> Kindly verify your email by clicking the button below </p>
-                <a href="${verifyLink}" style="color:#4f46e5"> Verify Email </a>
-            `
-      })
-    } else if (type === "welcome") {
-      await transporter.sendMail({
-        from: "CharmingDc at Happr <no-reply@happr.me>",
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
+            <p>Hey ${username},</p>
+            <p>
+              I'm <strong>CharmingDc</strong>, creator of <strong>Happr</strong>.
+              Thanks for signing up! To finish creating your account, please verify your email address.
+            </p>
+            <p>This link will expire in <strong>${expiry}</strong>.</p>
+            <a
+              href="${verifyLink}"
+              style="
+                display: inline-block;
+                padding: 10px 20px;
+                background-color: #4f46e5;
+                color: #ffffff;
+                text-decoration: none;
+                border-radius: 6px;
+                font-weight: bold;
+              "
+            >
+              Verify Email
+            </a>
+            <p style="margin-top: 16px; font-size: 14px; color: #555;">
+              If you didn’t create a Happr account, you can safely ignore this email.
+            </p>
+          </div>
+        `,
+      });
+    } else if (type === 'welcome') {
+      transporter.sendMail({
+        from: 'CharmingDc at Happr <no-reply@happr.me>',
         to: email,
         subject: "Welcome to Happr 🎉, Let's get you smiling!",
         html: `
         <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 40px; color: #111827;">
             <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 12px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-            
+
             <h2 style="color: #111827; text-align: center;">Welcome to Happr, ${username}! 😊</h2>
 
             <p style="font-size: 16px; line-height: 1.7;">
-                Hi <strong>${username}</strong>, thank you for joining our creator community!  
+                Hi <strong>${username}</strong>, thank you for joining our creator community!
             </p>
 
             <p style="font-size: 16px; line-height: 1.7;">
-                Happr lets your fans send <strong>Smiles</strong>, fun, instant tips that go straight to your bank account.  
-                Whether you're a musician, artist, gamer, or writer, Happr makes it easy to turn your creativity into support.  
+                Happr lets your fans send <strong>Smiles</strong>, fun, instant tips that go straight to your bank account.
+                Whether you're a musician, artist, gamer, or writer, Happr makes it easy to turn your creativity into support.
             </p>
 
             <div style="background-color: #f3f4f6; border-radius: 10px; padding: 20px; margin: 25px 0;">
@@ -77,7 +99,7 @@ app.get("/api/send-email", async (req, res) => {
             </p>
 
             <p style="font-size: 15px; line-height: 1.7; color: #4b5563;">
-                Your fans are waiting to support you. Share your page link, receive Smiles, and let your creativity shine.  
+                Your fans are waiting to support you. Share your page link, receive Smiles, and let your creativity shine.
             </p>
 
             <p style="font-size: 14px; color: #6b7280;">
@@ -87,21 +109,21 @@ app.get("/api/send-email", async (req, res) => {
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
 
             <p style="font-size: 13px; color: #9ca3af; text-align: center;">
-                &copy; ${new Date().getFullYear()} Happr. All rights reserved.  
+                &copy; ${new Date().getFullYear()} Happr. All rights reserved.
                 <br/>Made with love. Paid in Smiles.
             </p>
             </div>
         </div>
-        `
-      })
+        `,
+      });
     }
 
-    res.status(200).json({ success: true })
+    res.status(200).json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ error: error.message });
   }
-})
+});
 
-app.listen("5000", () => {
-  console.log("SMTP Server is running on port 5000")
-})
+app.listen('5000', () => {
+  console.log('SMTP Server is running on port 5000');
+});

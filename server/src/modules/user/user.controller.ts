@@ -1,69 +1,103 @@
-import { Controller, BadRequestException, UseInterceptors, UploadedFile, Delete, Get, Body, Patch, Param, Req, UseGuards, HttpCode, UnsupportedMediaTypeException } from '@nestjs/common';
+import {
+  Controller,
+  BadRequestException,
+  UseInterceptors,
+  UploadedFile,
+  Delete,
+  Get,
+  Body,
+  Patch,
+  Param,
+  Req,
+  UseGuards,
+  HttpCode,
+  UnsupportedMediaTypeException,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { UpdateUserDTO } from '../../dtos/user.dto';
-import { FileInterceptor } from "@nestjs/platform-express"
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import type { Express } from 'express';
 
-@ApiTags("User")
+@ApiTags('User')
 @ApiBearerAuth()
-@Controller("user")
-
+@Controller('user')
 export class UserController {
-    constructor(private readonly userService: UserService, @InjectQueue("image-queue") private readonly imageQueue: Queue,) {}
-    
-    // get authenticated user controller
-    @Get("me")
-    @HttpCode(200)
-    @ApiOperation({ summary: "Get an authenticated user info", description: "Get authenticated user information"})
-    @UseGuards(AuthGuard)
-    async getProfile(@Req() req: any) {
-        return this.userService.getUserDetails({ _id: req.user._id })
-    }
+  constructor(
+    private readonly userService: UserService,
+    @InjectQueue('image-queue') private readonly imageQueue: Queue,
+  ) {}
 
-    // update user information controller
-    @HttpCode(200)
-    @Patch(":id")
-    @ApiOperation({ summary: "Partially update some specific user information", description: "Partially update a specific user information and optionally upload an avatar"})
-    @UseGuards(AuthGuard)
-    @UseInterceptors(
-     FileInterceptor("avatar", {
-      limits: { fileSize: 5 * 1024 * 1024 }, 
+  // get authenticated user
+  @Get('me')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Get authenticated user info',
+    description: 'Fetch details of the currently logged-in user.',
+  })
+  @UseGuards(AuthGuard)
+  async getProfile(@Req() req: any) {
+    return this.userService.getUserDetails({ _id: req.user._id });
+  }
+
+  // update user info or upload avatar/cover
+  @Patch(':id')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Partially update user info or upload avatar/cover photo',
+    description:
+      'Allows partial updates to user information and optional upload of avatar or cover photo.',
+  })
+  @UseGuards(AuthGuard)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 5 * 1024 * 1024 },
       fileFilter: (_req, file, cb) => {
-        const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
-        if (!allowedTypes.includes(file.mimetype)) {
+        const allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+        if (!allowed.includes(file.mimetype)) {
           return cb(
             new UnsupportedMediaTypeException(
-              "Invalid file type. Only JPEG, PNG, JPG, and WEBP are allowed."
+              'Invalid file type. Only JPEG, PNG, JPG, and WEBP are allowed.',
             ),
-            false
+            false,
           );
         }
         cb(null, true);
       },
-    })
-    )
-    async updateUser(@Param("id") id: string, @Body() dto: UpdateUserDTO, @UploadedFile() file?: Express.Multer.File) { 
+    }),
+  )
+  async updateUser(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserDTO,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
     if (file) {
-        await this.imageQueue.add("upload-avatar", {
-            userId: id,
-            fileBuffer: file.buffer,
-            fileName: file.originalname,
-        })
-    }   
-        return this.userService.updateUserInfo(id, dto)
+      if (!dto.uploadType)
+        throw new BadRequestException('Missing uploadType: avatar or cover');
+
+      await this.imageQueue.add('upload-image', {
+        userId: id,
+        fileBuffer: file.buffer,
+        fileName: file.originalname,
+        uploadType: dto.uploadType,
+      });
     }
 
-    
-    // delete account controller
-    @Delete(":id")
-    @HttpCode(200)
-    @ApiOperation({ summary: "Delete your account", description: "Delete your own account"})
-    @UseGuards(AuthGuard)
-    async deleteACcount(@Param("id") id: string, @Req() req) {
-        return this.userService.deleteUserAccount(req.user._id, id)
-    }
+    return this.userService.updateUserInfo(id, dto);
+  }
+
+  // delete account
+  @Delete(':id')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Delete account',
+    description: 'Deletes the account of the authenticated user.',
+  })
+  @UseGuards(AuthGuard)
+  async deleteAccount(@Param('id') id: string, @Req() req: any) {
+    return this.userService.deleteUserAccount(req.user._id, id);
+  }
 }

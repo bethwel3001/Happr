@@ -1,68 +1,75 @@
-
-import { NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
-import { Logger } from '@nestjs/common'
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
-import cookieParser from "cookie-parser"
-import helmet from "helmet"
-import { BadRequestException, ValidationPipe } from '@nestjs/common'
-import { Request, Response, NextFunction } from 'express'
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { Logger } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
-    app.getHttpAdapter().get("/health", (_req: Request, res: Response) => {
+  const app = await NestFactory.create(AppModule);
+  app.getHttpAdapter().get('/', (_req: Request, res: Response) => {
     res.status(200).json({
       status: 'OK',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       memory: process.memoryUsage(),
-     })
-    })
+    });
+  });
 
-    app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-    exceptionFactory: (errors) => {
-      return new BadRequestException({
-        message: 'Validation failed',
-        errors: errors.map(err => ({
-          field: err.property,
-          errors: Object.values(err.constraints || {})
-        }))
-      });
-    }
-  }))
-  app.use(helmet())
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      exceptionFactory: (errors) => {
+        return new BadRequestException({
+          message: 'Validation failed',
+          errors: errors.map((err) => ({
+            field: err.property,
+            errors: Object.values(err.constraints || {}),
+          })),
+        });
+      },
+    }),
+  );
+  app.use(helmet());
   app.enableCors({
     origin: [process.env.FRONTEND_DOMAIN],
-    credentials: true
-  })
-  app.use(cookieParser())
-  app.setGlobalPrefix("api/v1")
+    credentials: true,
+  });
+  app.use(cookieParser());
+  app.setGlobalPrefix('api/v1');
 
-  const SWAGGER_AUTH_USER = process.env.SWAGGER_AUTH_USER!
-  const SWAGGER_AUTH_PASS = process.env.SWAGGER_AUTH_PASS!
+  const SWAGGER_AUTH_USER = process.env.SWAGGER_AUTH_USER!;
+  const SWAGGER_AUTH_PASS = process.env.SWAGGER_AUTH_PASS!;
 
-  
-  app.use("/", (req: Request, res: Response, next: NextFunction) => {
-    const auth = { username: SWAGGER_AUTH_USER, password: SWAGGER_AUTH_PASS } 
-    const b64auth = (req.headers?.authorization || "").split(" ")[1]
-   
-    let username = ""
-    let password = ""
+  app.use('/docs', (req: Request, res: Response, next: NextFunction) => {
+    const auth = { username: SWAGGER_AUTH_USER, password: SWAGGER_AUTH_PASS };
+    const b64auth = (req.headers?.authorization || '').split(' ')[1];
 
-    try{
-     [username, password] = Buffer.from(b64auth, "base64").toString("utf-8").split(":")
+    let username = '';
+    let password = '';
+
+    try {
+      [username, password] = Buffer.from(b64auth, 'base64')
+        .toString('utf-8')
+        .split(':');
     } catch {}
-    
-    if(username && password && username === auth.username && password === auth.password) {
-      return next()
+
+    if (
+      username &&
+      password &&
+      username === auth.username &&
+      password === auth.password
+    ) {
+      return next();
     }
 
-    res.set("WWW-Authenticate", "Basic realm='Swagger UI'")
-    res.status(401).send("Authentication required!")
-  })
+    res.set('WWW-Authenticate', "Basic realm='Swagger UI'");
+    res.status(401).send('Authentication required!');
+  });
 
   const config = new DocumentBuilder()
     .setTitle('Happr API')
@@ -72,17 +79,18 @@ async function bootstrap() {
     .addBearerAuth({
       type: 'http',
       scheme: 'bearer',
-      bearerFormat: 'JWT'
-    }).build()
+      bearerFormat: 'JWT',
+    })
+    .build();
 
-  const document = SwaggerModule.createDocument(app, config)
+  const document = SwaggerModule.createDocument(app, config);
 
-  SwaggerModule.setup('/', app, document, {
-    jsonDocumentUrl: 'docs/json'
-  })
+  SwaggerModule.setup('/docs', app, document, {
+    jsonDocumentUrl: 'docs/json',
+  });
 
-  app.useLogger(new Logger())
-  await app.listen(process.env.PORT ?? 5000)
+  app.useLogger(new Logger());
+  await app.listen(process.env.PORT ?? 5000);
 }
 
-bootstrap()
+bootstrap();

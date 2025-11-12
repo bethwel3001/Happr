@@ -13,7 +13,8 @@ model User {
   password        String?        // nullable for Google users
   username        String         @unique
   bio             String?
-  avatar_url      String?
+  avatar          String?
+  cover_photo     String?        @default("")
   display_name    String?
   phone_number    String?
   auth_provider   String         @default("local") // "local" or "google"
@@ -23,7 +24,7 @@ model User {
 
   // Relations
   bank_account    BankAccount?   @relation(fields: [bank_account_id], references: [id], onDelete: SetNull)
-  bank_account_id String?        @unique 
+  bank_account_id String?        @unique
   refresh_tokens  RefreshToken[]
   donations       Donation[]     @relation("DonationsReceived") // donations received
   supports        Donation[]     @relation("DonationsGiven")    // donations given
