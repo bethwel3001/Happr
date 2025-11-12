@@ -227,9 +227,10 @@ export class UserService {
     const { otp } = generateCryptographicOtp();
     await redis.set(`payout-otp:${_id}`, otp, 'EX', 300);
 
-    await this.emailQueue.add('send-verification', {
+    await this.emailQueue.add('send-payout-otp', {
       type: 'payout-otp',
       data: {
+        email: user.email,
         username: user.username,
         otp: otp,
       },

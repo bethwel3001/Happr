@@ -28,6 +28,14 @@ export class MailWorker extends WorkerHost {
           await this.mailService.sendWelcomeMail(data.email, data.username);
           break;
 
+        case 'payout-otp':
+          await this.mailService.sendPayoutOtp(
+            data.email,
+            data.otp,
+            data.username,
+          );
+          break;
+
         default:
           this.logger.warn(`Unknown email job type: ${type}`);
       }
