@@ -4,8 +4,14 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { GetUserDetailsDTO, UpdateUserDTO } from '../../dtos/user.dto';
+import {
+  GetUserDetailsDTO,
+  payoutDetailsInitDTO,
+  UpdateUserDTO,
+} from '../../dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
+import { generateCryptographicOtp } from '../../common/utils/generate.token';
+import { redis } from '../../common/config/redis.config';
 
 @Injectable()
 export class UserService {
@@ -43,18 +49,18 @@ export class UserService {
       },
     });
 
-    if (!user) {
+    if (!user)
       throw new NotFoundException({
         success: false,
         data: [],
         message: 'User does not exist',
       });
-    }
+
     if (!user.is_verified)
       throw new ForbiddenException({
         success: false,
         data: [],
-        message: 'You account is not verified yet, check your email',
+        message: 'Your account is not verified yet, check your email.',
       });
 
     const [totalReceived, totalGiven, uniqueSupporters] = await Promise.all([
@@ -62,12 +68,10 @@ export class UserService {
         _sum: { amount: true },
         where: { creator_id: dto._id },
       }),
-
       this.prisma.donation.aggregate({
         _sum: { amount: true },
         where: { supporter_id: dto._id },
       }),
-
       this.prisma.donation.findMany({
         where: { creator_id: dto._id, supporter_id: { not: null } },
         select: { supporter_id: true },
@@ -101,8 +105,8 @@ export class UserService {
     const responseData = {
       ...user,
       stats: {
-        total_donations_received: user._count.donations,
-        total_donations_given: user._count.supports,
+        total_donations_received: user._count.donations || 0,
+        total_donations_given: user._count.supports || 0,
         total_amount_received: totalReceived._sum.amount || 0,
         total_amount_given: totalGiven._sum.amount || 0,
         total_supporters: uniqueSupporters.length,
@@ -115,7 +119,7 @@ export class UserService {
     return {
       success: true,
       data: responseData,
-      message: 'User details and donation stats fetched successfully!',
+      message: 'User details and donation stats fetched successfully.',
     };
   }
 
@@ -124,18 +128,18 @@ export class UserService {
     dto: UpdateUserDTO,
   ): Promise<ApiResponseDTO> {
     const user = await this.prisma.user.findUnique({ where: { id } });
-    if (!user) {
+    if (!user)
       throw new NotFoundException({
         success: false,
         data: [],
         message: 'User does not exist',
       });
-    }
+
     if (!user.is_verified)
       throw new ForbiddenException({
         success: false,
         data: [],
-        message: 'You account is not verified yet, check your email',
+        message: 'Your account is not verified yet, check your email.',
       });
 
     const updatedUser = await this.prisma.user.update({
@@ -160,7 +164,7 @@ export class UserService {
     return {
       success: true,
       data: updatedUser,
-      message: 'User profile updated successfuly!',
+      message: 'User profile updated successfully.',
     };
   }
 
@@ -168,37 +172,64 @@ export class UserService {
     authUserId: string,
     targetUserId: string,
   ): Promise<ApiResponseDTO> {
-    if (authUserId !== targetUserId) {
+    if (authUserId !== targetUserId)
       throw new ForbiddenException({
         success: false,
         data: [],
-        message: 'You are not authorized to delete this account',
+        message: 'You are not authorized to delete this account.',
       });
-    }
 
     const user = await this.prisma.user.findUnique({
       where: { id: targetUserId },
     });
-    if (!user) {
+
+    if (!user)
       throw new NotFoundException({
         success: false,
         data: [],
-        message: 'user does not exist',
+        message: 'User does not exist.',
       });
-    }
 
     if (!user.is_verified)
       throw new ForbiddenException({
         success: false,
         data: [],
-        message: 'You account is not verified yet, check your email',
+        message: 'Your account is not verified yet, check your email.',
       });
 
     await this.prisma.user.delete({ where: { id: targetUserId } });
+
     return {
       success: true,
       data: [],
-      message: 'user account deleted successfully!',
+      message: 'User account deleted successfully.',
+    };
+  }
+
+  async getUpdatePayoutSettingsOtp(_id: string): Promise<ApiResponseDTO> {
+    const user = await this.prisma.user.findUnique({ where: { id: _id } });
+
+    if (!user)
+      throw new NotFoundException({
+        success: false,
+        data: [],
+        message: 'User does not exist.',
+      });
+
+    if (!user.is_verified)
+      throw new ForbiddenException({
+        success: false,
+        data: [],
+        message: 'Your account is not verified yet, check your email.',
+      });
+
+    const { otp } = generateCryptographicOtp();
+    (redis as any).set(`payout-otp:${_id}`, otp, 'EX', 300);
+
+    return {
+      success: true,
+      message: 'OTP sent successfully.',
+      data: [],
     };
   }
 }

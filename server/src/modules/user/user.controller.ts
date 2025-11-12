@@ -1,6 +1,5 @@
 import {
   Controller,
-  BadRequestException,
   UseInterceptors,
   UploadedFile,
   Delete,
@@ -12,14 +11,16 @@ import {
   UseGuards,
   HttpCode,
   UnsupportedMediaTypeException,
+  BadRequestException,
+  Post,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { AuthGuard } from '../../common/guards/auth.guard';
-import { UpdateUserDTO } from '../../dtos/user.dto';
+import { payoutDetailsInitDTO, UpdateUserDTO } from '../../dtos/user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import type { Express } from 'express';
 
 @ApiTags('User')
@@ -31,7 +32,6 @@ export class UserController {
     @InjectQueue('image-queue') private readonly imageQueue: Queue,
   ) {}
 
-  // get authenticated user
   @Get('me')
   @HttpCode(200)
   @ApiOperation({
@@ -43,11 +43,10 @@ export class UserController {
     return this.userService.getUserDetails({ _id: req.user._id });
   }
 
-  // update user info or upload avatar/cover
   @Patch(':id')
   @HttpCode(200)
   @ApiOperation({
-    summary: 'Partially update user info or upload avatar/cover photo',
+    summary: 'Update user info or upload avatar/cover photo',
     description:
       'Allows partial updates to user information and optional upload of avatar or cover photo.',
   })
@@ -89,7 +88,6 @@ export class UserController {
     return this.userService.updateUserInfo(id, dto);
   }
 
-  // delete account
   @Delete(':id')
   @HttpCode(200)
   @ApiOperation({
@@ -99,5 +97,19 @@ export class UserController {
   @UseGuards(AuthGuard)
   async deleteAccount(@Param('id') id: string, @Req() req: any) {
     return this.userService.deleteUserAccount(req.user._id, id);
+  }
+
+  @Post('payout/init')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Initiate payout settings update (send OTP)',
+    description: 'Sends an OTP to verify user before updating payout settings.',
+  })
+  @UseGuards(AuthGuard)
+  async getUpdatePayoutSettingsOtp(
+    @Body() dto: payoutDetailsInitDTO,
+    @Req() req: any,
+  ) {
+    return this.userService.getUpdatePayoutSettingsOtp(req.user._id);
   }
 }
