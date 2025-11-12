@@ -20,6 +20,14 @@ import {
   generateMailToken,
 } from '../../common/utils/generate.token';
 
+interface DecodedMailToken {
+  id: string;
+  username: string;
+  email: string;
+  iat?: number;
+  exp?: number;
+}
+
 const unauthorizedUsernames = [
   'signup',
   'signin',
@@ -93,9 +101,7 @@ export class AuthService {
     }
 
     const existingUser = await this.prisma.user.findFirst({
-      where: {
-        OR: [{ email: dto.email }, { username: dto.username }],
-      },
+      where: { OR: [{ email: dto.email }, { username: dto.username }] },
     });
 
     if (existingUser) {
@@ -118,6 +124,7 @@ export class AuthService {
     });
 
     const { email_token } = generateMailToken(user.id, dto.username, dto.email);
+
     await this.emailQueue.add('send-verification', {
       type: 'verification',
       data: {
@@ -135,11 +142,14 @@ export class AuthService {
     };
   }
 
-  async verifyEmail(token: string): Promise<ApiResponseDTO> {
+  async verifyEmail(
+    token: string,
+  ): Promise<{ access_token: string; refresh_token: string }> {
     try {
-      const decoded = this.jwt.verify(token, {
-        secret: process.env.JWT_SECRET,
+      const decoded = this.jwt.verify<DecodedMailToken>(token, {
+        secret: process.env.JWT_SECRET!,
       });
+
       const user = await this.prisma.user.findUnique({
         where: { email: decoded.email },
       });
@@ -170,11 +180,18 @@ export class AuthService {
         data: { email: decoded.email, username: decoded.username },
       });
 
-      return {
-        success: true,
-        message: 'Email verified successfully!',
-        data: [],
-      };
+      const { access_token } = generateAccessToken(user.id, user.email);
+      const { refresh_token } = generateRefreshToken(user.id, user.email);
+
+      await this.prisma.refreshToken.create({
+        data: {
+          token: refresh_token,
+          user_id: user.id,
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        },
+      });
+
+      return { access_token, refresh_token };
     } catch {
       throw new BadRequestException({
         success: false,
@@ -200,9 +217,10 @@ export class AuthService {
     }
 
     const validPassword = await argon2.verify(
-      user?.password || '',
+      user.password ?? '',
       dto.password,
     );
+
     if (!validPassword) {
       throw new UnauthorizedException({
         success: false,
