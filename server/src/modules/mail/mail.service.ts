@@ -56,7 +56,7 @@ export class MailService {
     return this.sendEmailRequest({
       username,
       otp,
-      type: 'payout-otp',
+      type: 'otp',
     });
   }
 }
