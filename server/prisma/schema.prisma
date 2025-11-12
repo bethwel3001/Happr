@@ -23,7 +23,7 @@ model User {
   updated_at      DateTime       @updatedAt
 
   // Relations
-  bank_account    BankAccount?   @relation(fields: [bank_account_id], references: [id], onDelete: SetNull)
+  bank_account    BankAccount?
   bank_account_id String?        @unique
   refresh_tokens  RefreshToken[]
   donations       Donation[]     @relation("DonationsReceived") // donations received
@@ -44,11 +44,15 @@ model RefreshToken {
 }
 
 model BankAccount {
-  id             String  @id @default(cuid())
+  id             String   @id @default(cuid())
   bank_name      String
   account_name   String
-  account_number String  @unique
-  user           User?   @relation
+  account_number String   @unique
+  user_id        String?  @unique
+  user           User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  updated_at     DateTime @updatedAt
+
+  @@index([user_id])
 }
 
 model Donation {
