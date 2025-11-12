@@ -108,7 +108,6 @@ export class AuthController {
     return {
       success: true,
       message: 'User signedin successfully',
-      token: access_token,
       data: [],
     };
   }
