@@ -13,6 +13,7 @@ const AuthLayout = lazy(() =>
 const SignupPage = lazy(() => import("@/pages/SignUp"));
 const SigninPage = lazy(() => import("@/pages/SignIn"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
+const EmailVerification = lazy(() => import("@/pages/EmailVerification"));
 
 // User Pages
 const UserPagesLayout = lazy(
@@ -29,6 +30,7 @@ const pages: { path: string; element: React.FC; cat: "auth" | "user" }[] = [
   { path: "/signup", element: SignupPage, cat: "auth" },
   { path: "/signin", element: SigninPage, cat: "auth" },
   { path: "/reset-password", element: ResetPassword, cat: "auth" },
+  { path: "/email-verification", element: EmailVerification, cat: "auth" },
   { path: "/complete-setup", element: OnboardingPage, cat: "auth" },
   { path: "/dashboard", element: Dashboard, cat: "user" },
   { path: "/supporters", element: SupportersPage, cat: "user" },

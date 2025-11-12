@@ -14,7 +14,6 @@ axiosFacade.interceptors.response.use(
   error => Promise.reject(error)
 );
 
-// Define a new interface for your unwrapped facade
 interface Facade {
   <T = any>(config: AxiosRequestConfig): Promise<T>;
   get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>;

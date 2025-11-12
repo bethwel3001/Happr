@@ -1,32 +1,50 @@
 import Button from "@/components/ui/Button";
 import { toast } from "sonner";
+import { useUsernameAvailability } from "@/features/auth";
 import type { Dispatch, SetStateAction } from "react";
 
 type FormProps = {
   username: string;
   setUsername: Dispatch<SetStateAction<string>>;
-  setIsUsernameChosen: Dispatch<SetStateAction<boolean>>;
+  onUsernameChosen: () => void;
 };
 
 const ChooseUsernameForm = ({
   username,
   setUsername,
-  setIsUsernameChosen
+  onUsernameChosen
 }: FormProps) => {
+  const { refetch, isFetching } = useUsernameAvailability(username);
+
   const handleSubmit = async () => {
-    if (username.trim().length < 3) {
-      toast.warning("Username must be greater than two characters");
+    const trimmed = username.trim();
+
+    if (trimmed.length < 3) {
+      toast.warning("Username must be at least 3 characters");
       return;
     }
 
-    setIsUsernameChosen(true);
+    const result = await refetch();
+
+    if (result.isError) {
+      toast.error("Failed to check username");
+      return;
+    }
+
+    if (result.data && !result.data.success) {
+      toast.error(result.data.message);
+      return;
+    }
+
+    sessionStorage.setItem("usernameConfirmed", trimmed);
+    onUsernameChosen();
   };
 
   return (
     <form
-      onSubmit={async e => {
+      onSubmit={e => {
         e.preventDefault();
-        await handleSubmit();
+        handleSubmit();
       }}
       className="w-full flex flex-col items-center gap-4 py-4 mt-4"
     >
@@ -41,10 +59,14 @@ const ChooseUsernameForm = ({
         />
       </div>
 
-      <Button disabled={!username} className="w-full">
-        Continue
+      <Button
+        disabled={username.trim().length < 3 || isFetching}
+        className="w-full"
+      >
+        {isFetching ? "Checking..." : "Continue"}
       </Button>
     </form>
   );
 };
+
 export default ChooseUsernameForm;

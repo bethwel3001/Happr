@@ -3,4 +3,8 @@ import SignupForm from "./components/SignupForm";
 import SigninForm from "./components/SigninForm";
 import ResetPasswordForm from "./components/ResetPasswordForm";
 
+import useUsernameAvailability from "./hooks/useUsernameAvailability";
+
 export { Layout, SignupForm, SigninForm, ResetPasswordForm };
+
+export { useUsernameAvailability };

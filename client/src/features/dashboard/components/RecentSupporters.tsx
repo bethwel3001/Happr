@@ -18,8 +18,7 @@ const RecentSupporters = () => {
   const {
     data: supporters = [],
     isLoading,
-    isError,
-    error
+    isError
   } = useQuery<Supporter[]>({
     queryFn: () => getSupporters(creatorId, 5),
     queryKey: ["recent", "supporters", creatorId],
@@ -47,11 +46,7 @@ const RecentSupporters = () => {
         ) : isError ? (
           <ErrorBox
             title="Error loading supporters"
-            message={`${
-              error instanceof Error
-                ? error.message
-                : "Soemthing went wrong. Please try again"
-            }`}
+            message="Soemthing went wrong. Please try again"
           />
         ) : supporters.length === 0 ? (
           <NoSupporters />

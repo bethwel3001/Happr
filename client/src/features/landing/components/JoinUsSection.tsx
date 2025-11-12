@@ -1,23 +1,53 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, MotionConfig } from "motion/react";
 import { toast } from "sonner";
+import { useUsernameAvailability } from "@/features/auth";
 import CtaButton from "./CtaButton";
-import checkUsernameAvailability from "@/utils/checkUsernameAvailability";
 
 const JoinUsSection = () => {
   const [username, setUsername] = useState<string>("");
+  const [isAvailable, setIsAvailable] = useState(false);
+  const navigate = useNavigate();
+  const { refetch, isFetching } = useUsernameAvailability(username);
 
-  const handleSubmit = async () => {
-    if (!username || username.trim().length < 2) {
-      toast.error("Invalid username input");
+  const handleCheck = async () => {
+    const trimmed = username.trim();
+    if (!trimmed || trimmed.length < 3) {
+      toast.error("Username cannot be less than 3 characters");
+      setIsAvailable(false);
       return;
     }
 
-    try {
-      await checkUsernameAvailability(username);
-    } catch (err) {
-      console.log(err);
+    const result = await refetch();
+
+    if (result.isError) {
+      toast.error("Failed to check username");
+      setIsAvailable(false);
+      return;
     }
+
+    if (result.data) {
+      if (result.data.success) {
+        setIsAvailable(true);
+        toast.success(result.data.message);
+      } else {
+        setIsAvailable(false);
+        toast.error(result.data.message);
+      }
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!isAvailable) {
+      handleCheck();
+      return;
+    }
+
+    sessionStorage.setItem("usernameConfirmed", username.trim());
+    navigate(`/signup?username=${username.trim()}`);
   };
 
   return (
@@ -64,19 +94,19 @@ const JoinUsSection = () => {
           </motion.p>
 
           <motion.div
-            className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-4 px-3 py-2 text-sm text-muted-foreground border border-border mt-4 rounded-lg md:rounded-full"
+            className={`w-full flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-4 px-3 py-2 text-sm text-muted-foreground mt-4 rounded-lg md:rounded-full ${
+              isAvailable ? "border border-green-500" : "border border-border"
+            }`}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{
               opacity: 1,
               y: 0,
               transition: { duration: 0.6, ease: "easeOut" }
             }}
+            viewport={{ once: true }}
           >
             <form
-              onSubmit={async e => {
-                e.preventDefault();
-                await handleSubmit();
-              }}
+              onSubmit={handleSubmit}
               id="join-us-form"
               className="flex items-center w-full sm:w-auto flex-grow overflow-hidden"
             >
@@ -86,9 +116,13 @@ const JoinUsSection = () => {
               <input
                 type="text"
                 value={username}
-                onChange={e => setUsername(e.target.value)}
+                onChange={e => {
+                  setUsername(e.target.value);
+                  setIsAvailable(false);
+                }}
                 placeholder="username"
-                className="flex-grow bg-transparent rounded-full px-2 py-1 focus:outline-none text-xs sm:text-sm"
+                disabled={isFetching}
+                className="flex-grow bg-input rounded-full px-2 py-1 focus:outline-none text-xs sm:text-sm disabled:bg-muted"
               />
             </form>
 
@@ -100,9 +134,14 @@ const JoinUsSection = () => {
               <CtaButton
                 type="submit"
                 form="join-us-form"
+                disabled={!username || username.length < 3 || isFetching}
                 className="text-sm py-2 px-4 w-full whitespace-nowrap rounded-lg sm:w-auto md:rounded-full"
               >
-                Claim Page
+                {isAvailable
+                  ? "Claim Page"
+                  : isFetching
+                  ? "Checking..."
+                  : "Check Availability"}
               </CtaButton>
             </motion.div>
           </motion.div>

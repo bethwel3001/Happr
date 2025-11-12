@@ -4,7 +4,6 @@ import Button from "@/components/ui/Button";
 
 const AccountSettings = () => {
   const [email, setEmail] = useState<string>("adebayomuis32@gmail.com");
-  const [password, setPassword] = useState<string>("");
 
   return (
     <div
@@ -35,26 +34,6 @@ const AccountSettings = () => {
             className="mt-3 mb-1"
           />
           <Button className="w-fit"> Update Email</Button>
-        </div>
-
-        <div className="w-full flex flex-col gap-1 p-4 border rounded-md">
-          <label htmlFor="password-input" className="font-bold text-lg">
-            Password
-          </label>
-          <p className="text-xs text-muted-foreground">
-            To change your password, enter your preferred password in the input
-            below.
-          </p>
-
-          <Input
-            type="password"
-            id="password-input"
-            value={password}
-            placeholder="Enter your preferred password"
-            onChange={e => setPassword(e.target.value)}
-            className="mt-3 mb-1"
-          />
-          <Button className="w-fit"> Update Password </Button>
         </div>
       </form>
 
