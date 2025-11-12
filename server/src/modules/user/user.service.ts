@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { GetUserDetailsDTO, UpdateUserDTO } from '../../dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
@@ -16,7 +20,8 @@ export class UserService {
         username: true,
         bio: true,
         display_name: true,
-        avatar_url: true,
+        avatar: true,
+        cover_photo: true,
         phone_number: true,
         auth_provider: true,
         is_verified: true,
@@ -31,12 +36,12 @@ export class UserService {
         },
         _count: {
           select: {
-            donations: true, 
-            supports: true,  
+            donations: true,
+            supports: true,
           },
         },
       },
-    })
+    });
 
     if (!user) {
       throw new NotFoundException({
@@ -45,8 +50,13 @@ export class UserService {
         message: 'User does not exist',
       });
     }
-    if(!user.is_verified) throw new ForbiddenException({ success: false, data: [], message: "You account is not verified yet, check your email"})
-   
+    if (!user.is_verified)
+      throw new ForbiddenException({
+        success: false,
+        data: [],
+        message: 'You account is not verified yet, check your email',
+      });
+
     const [totalReceived, totalGiven, uniqueSupporters] = await Promise.all([
       this.prisma.donation.aggregate({
         _sum: { amount: true },
@@ -63,8 +73,7 @@ export class UserService {
         select: { supporter_id: true },
         distinct: ['supporter_id'],
       }),
-    ])
-
+    ]);
 
     const recentDonations = await this.prisma.donation.findMany({
       where: { creator_id: dto._id },
@@ -82,11 +91,12 @@ export class UserService {
           select: {
             id: true,
             username: true,
-            avatar_url: true,
+            avatar: true,
+            cover_photo: true,
           },
         },
       },
-    })
+    });
 
     const responseData = {
       ...user,
@@ -98,20 +108,35 @@ export class UserService {
         total_supporters: uniqueSupporters.length,
       },
       recent_donations: recentDonations,
-    }
+    };
 
     delete (responseData as any)._count;
 
-    return { success: true, data: responseData, message: "User details and donation stats fetched successfully!", }
-
+    return {
+      success: true,
+      data: responseData,
+      message: 'User details and donation stats fetched successfully!',
+    };
   }
 
-  async updateUserInfo(id: string, dto: UpdateUserDTO): Promise<ApiResponseDTO> {
-    const user = await this.prisma.user.findUnique({ where: { id} })
-    if(!user) {
-      throw new NotFoundException({ success: false, data: [], message: "User does not exist"})
+  async updateUserInfo(
+    id: string,
+    dto: UpdateUserDTO,
+  ): Promise<ApiResponseDTO> {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException({
+        success: false,
+        data: [],
+        message: 'User does not exist',
+      });
     }
-    if(!user.is_verified) throw new ForbiddenException({ success: false, data: [], message: "You account is not verified yet, check your email"})
+    if (!user.is_verified)
+      throw new ForbiddenException({
+        success: false,
+        data: [],
+        message: 'You account is not verified yet, check your email',
+      });
 
     const updatedUser = await this.prisma.user.update({
       where: { id },
@@ -122,31 +147,58 @@ export class UserService {
         username: true,
         bio: true,
         display_name: true,
-        avatar_url: true,
+        avatar: true,
+        cover_photo: true,
         phone_number: true,
         auth_provider: true,
         is_verified: true,
         created_at: true,
         updated_at: true,
       },
-    })
+    });
 
-    return { success: true, data: updatedUser, message: "User profile updated successfuly!",}
+    return {
+      success: true,
+      data: updatedUser,
+      message: 'User profile updated successfuly!',
+    };
   }
 
-  async deleteUserAccount(authUserId: string, targetUserId: string): Promise<ApiResponseDTO> {
-    if(authUserId !== targetUserId) {
-      throw new ForbiddenException({ success: false, data: [], message: "You are not authorized to delete this account",})
+  async deleteUserAccount(
+    authUserId: string,
+    targetUserId: string,
+  ): Promise<ApiResponseDTO> {
+    if (authUserId !== targetUserId) {
+      throw new ForbiddenException({
+        success: false,
+        data: [],
+        message: 'You are not authorized to delete this account',
+      });
     }
 
-    const user = await this.prisma.user.findUnique({ where: { id: targetUserId }})
-    if(!user) {
-      throw new NotFoundException({ success: false, data: [], message: "user does not exist"})
+    const user = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+    });
+    if (!user) {
+      throw new NotFoundException({
+        success: false,
+        data: [],
+        message: 'user does not exist',
+      });
     }
 
-    if(!user.is_verified) throw new ForbiddenException({ success: false, data: [], message: "You account is not verified yet, check your email"})
-    
-    await this.prisma.user.delete({ where: { id: targetUserId }})
-    return { success: true, data: [], message: "user account deleted successfully!"}
+    if (!user.is_verified)
+      throw new ForbiddenException({
+        success: false,
+        data: [],
+        message: 'You account is not verified yet, check your email',
+      });
+
+    await this.prisma.user.delete({ where: { id: targetUserId } });
+    return {
+      success: true,
+      data: [],
+      message: 'user account deleted successfully!',
+    };
   }
 }

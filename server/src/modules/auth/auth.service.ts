@@ -1,211 +1,236 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { JwtService } from "@nestjs/jwt";
-import * as argon2 from 'argon2'
+import { JwtService } from '@nestjs/jwt';
+import * as argon2 from 'argon2';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
-import { SignupDTO, SignInDTO, usernameAvailabilityDTO } from '../../dtos/auth.module.dto';
-import { Queue } from 'bullmq'
-import { InjectQueue } from '@nestjs/bullmq'
-import { generateAccessToken, generateRefreshToken, generateMailToken } from '../../common/utils/generate.token' 
+import {
+  SignupDTO,
+  SignInDTO,
+  usernameAvailabilityDTO,
+} from '../../dtos/auth.module.dto';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  generateMailToken,
+} from '../../common/utils/generate.token';
 
 const unauthorizedUsernames = [
-  "signup",
-  "signin",
-  "reset-password",
-  "complete-setup",
-  "dashboard",
-  "supporters",
-  "payout",
-  "settings",
-  "admin",
-  "api",
-  "auth",
-  "user",
-  "profile",
-  "login",
-  "register",
-  "verify",
-  "email",
-  "password"
-]
+  'signup',
+  'signin',
+  'reset-password',
+  'complete-setup',
+  'dashboard',
+  'supporters',
+  'payout',
+  'settings',
+  'admin',
+  'api',
+  'auth',
+  'user',
+  'profile',
+  'login',
+  'register',
+  'verify',
+  'email',
+  'password',
+];
 
 @Injectable()
 export class AuthService {
-    constructor(
-        private prisma: PrismaService, 
-        private jwt: JwtService,
-        @InjectQueue("email-queue") private emailQueue: Queue
-    ){}
+  constructor(
+    private prisma: PrismaService,
+    private jwt: JwtService,
+    @InjectQueue('email-queue') private emailQueue: Queue,
+  ) {}
 
-    private isUsernameAllowed(username: string): boolean {
-        return !unauthorizedUsernames.includes(username.toLowerCase())
+  private isUsernameAllowed(username: string): boolean {
+    return !unauthorizedUsernames.includes(username.toLowerCase());
+  }
+
+  async checkUsernameAvailability(
+    dto: usernameAvailabilityDTO,
+  ): Promise<ApiResponseDTO> {
+    if (!this.isUsernameAllowed(dto.username)) {
+      throw new BadRequestException({
+        success: false,
+        data: [],
+        message: `"${dto.username}" is not allowed as a username`,
+      });
     }
 
-    async checkUsernameAvailability(dto: usernameAvailabilityDTO): Promise<ApiResponseDTO>{
-        if (!this.isUsernameAllowed(dto.username)) {
-            throw new BadRequestException({ 
-                success: false, 
-                data: [], 
-                message: `"${dto.username}" is not allowed as a username` 
-            })
-        }
+    const username = await this.prisma.user.findUnique({
+      where: { username: dto.username },
+    });
 
-        const username = await this.prisma.user.findUnique({ 
-            where: { username: dto.username }
-        })
-        
-        if(username) {
-            throw new BadRequestException({ 
-                success: false, 
-                data: [], 
-                message: `"${dto.username}" is already taken` 
-            })
-        }
-
-        return { 
-            success: true, 
-            data: [], 
-            message: `${dto.username} is available` 
-        }
+    if (username) {
+      throw new BadRequestException({
+        success: false,
+        data: [],
+        message: `"${dto.username}" is already taken`,
+      });
     }
 
-    async signup(dto: SignupDTO): Promise<ApiResponseDTO>{
-        if (!this.isUsernameAllowed(dto.username)) {
-            throw new BadRequestException({ 
-                success: false, 
-                data: [], 
-                message: `"${dto.username}" is not allowed as a username` 
-            })
-        }
+    return {
+      success: true,
+      data: [],
+      message: `${dto.username} is available`,
+    };
+  }
 
-        const existingUser = await this.prisma.user.findFirst({ 
-            where: {
-                OR: [
-                    { email: dto.email },
-                    { username: dto.username }
-                ]
-            }
-        })
-
-        if(existingUser) {
-            throw new BadRequestException({ 
-                success: false, 
-                data: [], 
-                message: "Account already exists" 
-            })
-        }
-
-        const hashedPassword = await argon2.hash(dto.password)
-        const user = await this.prisma.user.create({
-            data: {
-                email: dto.email,
-                username: dto.username,
-                password: hashedPassword,
-                auth_provider: "local",
-            }
-        })
-
-        const { email_token } = generateMailToken(user.id, dto.username, dto.email)
-        await this.emailQueue.add("send-verification", {
-            type: "verification",
-            data: { email: dto.email, username: dto.username, token: email_token }
-        })
-        
-        return { 
-            success: true, 
-            data: [], 
-            message: "Account created. Please verify your email" 
-        }
+  async signup(dto: SignupDTO): Promise<ApiResponseDTO> {
+    if (!this.isUsernameAllowed(dto.username)) {
+      throw new BadRequestException({
+        success: false,
+        data: [],
+        message: `"${dto.username}" is not allowed as a username`,
+      });
     }
 
-    async verifyEmail(token: string): Promise<ApiResponseDTO> {
-        try{
-            const decoded = this.jwt.verify(token, { secret: process.env.JWT_SECRET })
-            const user = await this.prisma.user.findUnique({
-                where: { email: decoded.email },    
-            })
-            
-            if (!user) {
-                throw new BadRequestException({ 
-                    success: false, 
-                    data: [], 
-                    message: "User not found" 
-                })
-            }
-            
-            if(user.is_verified) {
-                throw new BadRequestException({ 
-                    success: false, 
-                    data: [], 
-                    message: "Email already verified, just login!" 
-                })
-            }
-            
-            await this.prisma.user.update({
-                where: { email: decoded.email },
-                data: { is_verified: true }
-            })
+    const existingUser = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ email: dto.email }, { username: dto.username }],
+      },
+    });
 
-            await this.emailQueue.add("send-welcome", {
-                type: "welcome",
-                data: { email: decoded.email, username: decoded.username }
-            })
-            
-            return { 
-                success: true, 
-                message: "Email verified successfully!", 
-                data: [] 
-            }
-        } catch {
-            throw new BadRequestException({ 
-                success: false, 
-                data: [], 
-                message: "Invalid or expired token!" 
-            })
-        }
+    if (existingUser) {
+      throw new BadRequestException({
+        success: false,
+        data: [],
+        message: 'Account already exists',
+      });
     }
-    
-    async signin(dto: SignInDTO): Promise<{ access_token: string, refresh_token: string}> {
-        const user = await this.prisma.user.findUnique({ 
-            where: { email: dto.email } 
-        })
-        
-        if(!user) {
-            throw new UnauthorizedException({ 
-                success: false, 
-                data: [], 
-                message: "Invalid credentials" 
-            })
-        }
 
-        const validPassword = await argon2.verify(user?.password || "", dto.password)
-        if(!validPassword) {
-            throw new UnauthorizedException({ 
-                success: false, 
-                data: [], 
-                message: "Invalid credentials" 
-            })
-        }
-        
-        if(!user.is_verified) {
-            throw new UnauthorizedException({ 
-                success: false, 
-                data: [], 
-                message: "Your account has not been verified yet, kindly check your email" 
-            })
-        }
-        
-        const { access_token } = generateAccessToken(user.id, user.email)
-        const { refresh_token } = generateRefreshToken(user.id, user.email)
+    const hashedPassword = await argon2.hash(dto.password);
+    const user = await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        username: dto.username,
+        password: hashedPassword,
+        avatar: `https://ui-avatars.com/api/?name=${dto.username}&background=random&bold=true&size=128`,
+        auth_provider: 'local',
+      },
+    });
 
-        await this.prisma.refreshToken.create({
-            data: {
-                token: refresh_token,
-                user_id: user.id,
-                expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            },
-        })
+    const { email_token } = generateMailToken(user.id, dto.username, dto.email);
+    await this.emailQueue.add('send-verification', {
+      type: 'verification',
+      data: {
+        email: dto.email,
+        username: dto.username,
+        token: email_token,
+        expiry: '4 hours',
+      },
+    });
 
-        return { access_token, refresh_token }
+    return {
+      success: true,
+      data: [],
+      message: 'Account created. Please verify your email',
+    };
+  }
+
+  async verifyEmail(token: string): Promise<ApiResponseDTO> {
+    try {
+      const decoded = this.jwt.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+      const user = await this.prisma.user.findUnique({
+        where: { email: decoded.email },
+      });
+
+      if (!user) {
+        throw new BadRequestException({
+          success: false,
+          data: [],
+          message: 'User not found',
+        });
+      }
+
+      if (user.is_verified) {
+        throw new BadRequestException({
+          success: false,
+          data: [],
+          message: 'Email already verified, just login!',
+        });
+      }
+
+      await this.prisma.user.update({
+        where: { email: decoded.email },
+        data: { is_verified: true },
+      });
+
+      await this.emailQueue.add('send-welcome', {
+        type: 'welcome',
+        data: { email: decoded.email, username: decoded.username },
+      });
+
+      return {
+        success: true,
+        message: 'Email verified successfully!',
+        data: [],
+      };
+    } catch {
+      throw new BadRequestException({
+        success: false,
+        data: [],
+        message: 'Invalid or expired token!',
+      });
     }
+  }
+
+  async signin(
+    dto: SignInDTO,
+  ): Promise<{ access_token: string; refresh_token: string }> {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException({
+        success: false,
+        data: [],
+        message: 'Invalid credentials',
+      });
+    }
+
+    const validPassword = await argon2.verify(
+      user?.password || '',
+      dto.password,
+    );
+    if (!validPassword) {
+      throw new UnauthorizedException({
+        success: false,
+        data: [],
+        message: 'Invalid credentials',
+      });
+    }
+
+    if (!user.is_verified) {
+      throw new UnauthorizedException({
+        success: false,
+        data: [],
+        message:
+          'Your account has not been verified yet, kindly check your email',
+      });
+    }
+
+    const { access_token } = generateAccessToken(user.id, user.email);
+    const { refresh_token } = generateRefreshToken(user.id, user.email);
+
+    await this.prisma.refreshToken.create({
+      data: {
+        token: refresh_token,
+        user_id: user.id,
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    return { access_token, refresh_token };
+  }
 }
