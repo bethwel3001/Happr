@@ -22,7 +22,10 @@ const JoinUsSection = () => {
     const result = await refetch();
 
     if (result.isError) {
-      toast.error("Failed to check username");
+      if (result?.error?.response?.data?.message)
+        toast.error(result.error.response.data.message);
+      else toast.error("Failed to check username");
+
       setIsAvailable(false);
       return;
     }

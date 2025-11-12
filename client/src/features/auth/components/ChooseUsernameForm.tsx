@@ -1,5 +1,6 @@
 import Button from "@/components/ui/Button";
 import { toast } from "sonner";
+import { isAxiosError } from "axios";
 import { useUsernameAvailability } from "@/features/auth";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -27,12 +28,9 @@ const ChooseUsernameForm = ({
     const result = await refetch();
 
     if (result.isError) {
-      toast.error("Failed to check username");
-      return;
-    }
-
-    if (result.data && !result.data.success) {
-      toast.error(result.data.message);
+      if (isAxiosError(result.error) && result?.error?.response?.data?.message)
+        toast.error(result.error.response.data.message);
+      else toast.error("Failed to check username");
       return;
     }
 
@@ -55,6 +53,7 @@ const ChooseUsernameForm = ({
           value={username}
           onChange={e => setUsername(e.target.value)}
           placeholder="username"
+          disabled={isFetching}
           className="h-full bg-transparent text-input-foreground px-[.1rem]"
         />
       </div>
