@@ -16,12 +16,12 @@ import {
 import { UserService } from './user.service';
 import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { AuthGuard } from '../../common/guards/auth.guard';
-import { UpdateUserDTO } from '../../dtos/user.dto';
+import { UpdateUserDTO, UpdatePayoutDetailsDTO } from '../../dtos/user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import type { Express } from 'express';
-import { updatePayoutDetailsDTO } from '../../dtos/user.dto';
+
 @ApiTags('User')
 @ApiBearerAuth()
 @Controller('user')
@@ -120,9 +120,10 @@ export class UserController {
   })
   @UseGuards(AuthGuard)
   async updatePayoutDetails(
+    @Body() dto: UpdatePayoutDetailsDTO,
     @Req() req: any,
-    @Body() dto: updatePayoutDetailsDTO,
   ) {
+    console.log(dto);
     const userId = req.user._id;
     return this.userService.updatePayoutDetails(userId, dto);
   }

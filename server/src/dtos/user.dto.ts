@@ -1,28 +1,41 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsPhoneNumber, IsIn } from 'class-validator';
+import {
+  IsNotEmpty,
+  Length,
+  Matches,
+  IsOptional,
+  IsString,
+  IsPhoneNumber,
+  IsIn,
+} from 'class-validator';
 
 export class GetUserDetailsDTO {
   @ApiProperty({ description: 'The ID of the authenticated user' })
   _id: string;
 }
 
-export class updatePayoutDetailsDTO {
+export class UpdatePayoutDetailsDTO {
   @ApiProperty({ description: 'The name of the bank' })
   @IsString()
-  bank_name: string;
+  @IsNotEmpty()
+  bankName: string;
 
   @ApiProperty({ description: 'The account number of the account holder' })
   @IsString()
-  account_number: string;
+  @IsNotEmpty()
+  @Length(10, 10, { message: 'Account number must be 10 digits' })
+  @Matches(/^\d+$/, { message: 'Account number must contain only digits' })
+  accountNumber: string;
 
   @ApiProperty({ description: 'The name of the account holder' })
   @IsString()
-  account_name: string;
+  @IsNotEmpty()
+  accountName: string;
 
-  @ApiPropertyOptional({ description: 'one time password' })
-  @IsOptional()
+  @ApiProperty({ description: 'one time password' })
   @IsString()
-  otp?: string;
+  @IsNotEmpty()
+  otp: string;
 }
 
 export class UpdateUserDTO {
