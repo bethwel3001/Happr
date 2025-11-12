@@ -15,17 +15,12 @@ import {
 } from '../../dtos/auth.module.dto';
 import { AuthService } from './auth.service';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Get('username')
   @HttpCode(200)
@@ -69,8 +64,32 @@ export class AuthController {
     description: 'Email verified successfully',
     type: ApiResponseDTO,
   })
-  verifyEmail(@Query('token') token: string) {
-    return this.authService.verifyEmail(token);
+  async verifyEmail(
+    @Query('token') token: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiResponseDTO> {
+    const { access_token, refresh_token } =
+      await this.authService.verifyEmail(token);
+
+    res.cookie('access_token', access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 60 * 1000,
+    });
+
+    res.cookie('refresh_token', refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return {
+      success: true,
+      message: 'Email verified successfully!',
+      data: [],
+    };
   }
 
   @Post('signin')
@@ -107,7 +126,7 @@ export class AuthController {
 
     return {
       success: true,
-      message: 'User signedin successfully',
+      message: 'User signed in successfully',
       data: [],
     };
   }

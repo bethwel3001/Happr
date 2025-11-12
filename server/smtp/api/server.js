@@ -50,7 +50,7 @@ app.get('/api/send-email', async (req, res) => {
       });
     } else if (type === 'welcome') {
       await transporter.sendMail({
-        from: `"CharmingDc at Happr" <${process.env.GMAIL_AUTH_USER}>`,
+        from: `"Charming Dc at Happr" <${process.env.GMAIL_AUTH_USER}>`,
         to: email,
         subject: "Welcome to Happr 🎉, Let's get you smiling!",
         html: `
@@ -80,7 +80,7 @@ app.get('/api/send-email', async (req, res) => {
       });
     } else if (type === 'otp') {
       await transporter.sendMail({
-        from: `"Happr Payout Settings" <${process.env.GMAIL_AUTH_USER}>`,
+        from: `"Samuel at Happr" <${process.env.GMAIL_AUTH_USER}>`,
         to: email,
         subject: 'OTP to Update Your Payout Settings',
         html: `
