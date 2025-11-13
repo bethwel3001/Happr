@@ -34,10 +34,14 @@ async function bootstrap() {
       },
     }),
   );
+
   app.use(helmet());
   app.enableCors({
-    origin: [process.env.FRONTEND_DOMAIN],
+    origin: [process.env.FRONTEND_DOMAIN!],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['set-cookie'],
   });
   app.use(cookieParser());
   app.setGlobalPrefix('api/v1');

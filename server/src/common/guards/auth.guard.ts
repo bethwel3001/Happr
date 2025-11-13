@@ -8,7 +8,6 @@ import { JwtService, TokenExpiredError, JsonWebTokenError } from '@nestjs/jwt';
 import { Request } from 'express';
 
 interface JwtPayload {
-  sub: string;
   _id: string;
   email?: string;
   iat?: number;
