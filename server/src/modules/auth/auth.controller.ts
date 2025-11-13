@@ -8,6 +8,7 @@ import {
   HttpCode,
   Res,
   Req,
+  Delete,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -135,12 +136,12 @@ export class AuthController {
     };
   }
 
-  @Get('signout')
+  @Delete('signout')
   @HttpCode(200)
   @ApiOperation({
     summary: 'Logout user',
     description:
-      'Logs out a user by clearing their JWT tokens from their browser.',
+      'Logs out a user by deleting their JWT tokens from their browser, and also deleting their refresh token from the db.',
   })
   @ApiResponse({
     status: 200,
