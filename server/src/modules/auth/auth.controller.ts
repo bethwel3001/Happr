@@ -7,6 +7,8 @@ import {
   Query,
   HttpCode,
   Res,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   SignupDTO,
@@ -16,6 +18,8 @@ import {
 import { AuthService } from './auth.service';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { AuthGuard } from '../../common/guards/auth.guard';
+import type { AuthenticatedRequest } from '../../common/guards/auth.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -127,6 +131,34 @@ export class AuthController {
     return {
       success: true,
       message: 'User signed in successfully',
+      data: [],
+    };
+  }
+
+  @Get('signout')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Logout user',
+    description:
+      'Logs out a user by clearing their JWT tokens from their browser.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User signed out successfully',
+    type: ApiResponseDTO,
+  })
+  @UseGuards(AuthGuard)
+  async signout(
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiResponseDTO> {
+    await this.authService.signout(req.user._id);
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
+
+    return {
+      success: true,
+      message: 'User signed out successfully',
       data: [],
     };
   }

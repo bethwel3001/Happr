@@ -1,15 +1,12 @@
-import { ApiProperty } from "@nestjs/swagger"
+import { ApiProperty } from '@nestjs/swagger';
 
 export class ApiResponseDTO<T = any> {
-    @ApiProperty()
-    success: boolean
+  @ApiProperty()
+  success: boolean;
 
-    @ApiProperty()
-    message?: string
-    
-    @ApiProperty()
-    token?: string
+  @ApiProperty()
+  message?: string;
 
-    @ApiProperty()
-    data?: T
+  @ApiProperty()
+  data?: T;
 }

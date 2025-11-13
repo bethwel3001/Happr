@@ -21,6 +21,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import type { Express } from 'express';
+import type { AuthenticatedRequest } from '../../common/guards/auth.guard';
 
 @ApiTags('User')
 @ApiBearerAuth()
@@ -38,7 +39,7 @@ export class UserController {
     description: 'Fetch details of the currently logged-in user.',
   })
   @UseGuards(AuthGuard)
-  async getProfile(@Req() req: any) {
+  async getProfile(@Req() req: AuthenticatedRequest) {
     return this.userService.getUserDetails({ _id: req.user._id });
   }
 
@@ -94,7 +95,10 @@ export class UserController {
     description: 'Deletes the account of the authenticated user.',
   })
   @UseGuards(AuthGuard)
-  async deleteAccount(@Param('id') id: string, @Req() req: any) {
+  async deleteAccount(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
     return this.userService.deleteUserAccount(req.user._id, id);
   }
 
@@ -106,8 +110,8 @@ export class UserController {
       'Sends an OTP to the user email to verify before updating sensitive info',
   })
   @UseGuards(AuthGuard)
-  async requestPayoutOtp(@Req() req: any) {
-    const userId = req?.user._id as string;
+  async requestPayoutOtp(@Req() req: AuthenticatedRequest) {
+    const userId = req?.user._id;
     return this.userService.generateOtp(userId);
   }
 
@@ -121,7 +125,7 @@ export class UserController {
   @UseGuards(AuthGuard)
   async updatePayoutDetails(
     @Body() dto: UpdatePayoutDetailsDTO,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
   ) {
     console.log(dto);
     const userId = req.user._id;

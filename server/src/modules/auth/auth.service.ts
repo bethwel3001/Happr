@@ -251,4 +251,10 @@ export class AuthService {
 
     return { access_token, refresh_token };
   }
+
+  async signout(userId: string): Promise<void> {
+    await this.prisma.refreshToken.deleteMany({
+      where: { user_id: userId },
+    });
+  }
 }
