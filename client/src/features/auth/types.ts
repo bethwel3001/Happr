@@ -19,4 +19,27 @@ interface FieldError {
   errors: string[];
 }
 
-export type { UsernameAvailability, SignupInputs, SignupResponse, FieldError };
+interface EmailVerificationResponse {
+  success: boolean;
+  message: string;
+}
+
+type SigninInputs = {
+  email: string;
+  password: string;
+};
+
+interface SigninResponse {
+  success: boolean;
+  message: string;
+}
+
+export type {
+  UsernameAvailability,
+  SignupInputs,
+  SignupResponse,
+  FieldError,
+  EmailVerificationResponse,
+  SigninInputs,
+  SigninResponse
+};
