@@ -5,10 +5,10 @@ const baseURL = import.meta.env.VITE_API_URL;
 
 const axiosFacade = axios.create({
   baseURL,
-  timeout: 10000
+  timeout: 10000,
+  withCredentials: true
 });
 
-// Response interceptor to unwrap `data`
 axiosFacade.interceptors.response.use(
   <T>(response: { data: T }): T => response.data,
   error => Promise.reject(error)

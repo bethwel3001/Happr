@@ -9,15 +9,13 @@ import {
 
 const EmailVerification = () => {
   const [countdown, setCountdown] = useState<number>(5);
+
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-
   const verificationToken = searchParams.get("token") ?? "";
-  const username = searchParams.get("username") ?? "";
 
   const { data, isLoading, isError } = useEmailVerification({
-    verificationToken,
-    username
+    verificationToken
   });
 
   const isInvalid = !verificationToken || isError;

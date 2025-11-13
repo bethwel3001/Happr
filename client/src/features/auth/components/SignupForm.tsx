@@ -9,6 +9,7 @@ import GoogleAuthButton from "./GoogleAuthButton";
 import { isAxiosError } from "axios";
 import type { FieldError } from "../types";
 import useSignup from "../hooks/useSignup";
+import useClearFieldError from "../hooks/useClearFieldError";
 
 type FormProps = {
   initialUsername: string;
@@ -21,25 +22,16 @@ const SignupForm = ({ initialUsername }: FormProps) => {
     string,
     string[]
   > | null>(null);
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const clearFieldError = useClearFieldError(setFieldsError);
   const { mutate: signup, isPending } = useSignup();
 
   useEffect(() => {
     setUsername(initialUsername);
     setIsUsernameChosen(!!initialUsername);
   }, [initialUsername]);
-
-  // Helper to safely clear a field error
-  const clearFieldError = (field: string) => {
-    setFieldsError(prev => {
-      if (!prev) return null;
-      const { [field]: _, ...rest } = prev;
-      return Object.keys(rest).length === 0 ? null : rest;
-    });
-  };
 
   const handleSignup = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -103,6 +95,7 @@ const SignupForm = ({ initialUsername }: FormProps) => {
             name="email"
             type="email"
             value={email}
+            disabled={isPending}
             onChange={e => {
               setEmail(e.target.value);
               clearFieldError("email");
@@ -125,6 +118,7 @@ const SignupForm = ({ initialUsername }: FormProps) => {
             name="password"
             type="password"
             value={password}
+            disabled={isPending}
             onChange={e => {
               setPassword(e.target.value);
               clearFieldError("password");
