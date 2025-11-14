@@ -60,7 +60,9 @@ async function bootstrap() {
       [username, password] = Buffer.from(b64auth, 'base64')
         .toString('utf-8')
         .split(':');
-    } catch {}
+    } catch {
+      Logger.warn('Invalid authorization header');
+    }
 
     if (
       username &&
@@ -102,4 +104,7 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 5000);
 }
 
-bootstrap();
+bootstrap().catch((error) => {
+  Logger.error('Error during bootstrap:', error);
+  process.exit(1);
+});
