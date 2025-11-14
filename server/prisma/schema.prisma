@@ -16,6 +16,7 @@ model User {
   avatar          String?
   cover_photo     String?        @default("")
   display_name    String?
+  website_link    String?        @default("")
   phone_number    String?
   auth_provider   String         @default("local") // "local" or "google"
   is_verified     Boolean        @default(false)
