@@ -1,11 +1,5 @@
 import { axios } from "@/lib";
-import type { SigninInputs, SigninResponse } from "../types";
-
-interface ApiResponse<T = unknown> {
-  success: boolean;
-  message: string;
-  data: T[];
-}
+import type { SigninInputs, SigninResponse, ApiResponse } from "../types";
 
 const signin = async ({
   email,

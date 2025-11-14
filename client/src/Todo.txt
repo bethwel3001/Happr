@@ -1,0 +1,3 @@
+- Swap traditonal auth hooks for useAuth in signup and login screens
+- Create public and protected route components & use in app.tsx 
+- work on onboarding page
