@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Menu } from "lucide-react";
-import Sidebar from "./Sidebar";
+import { useAuth } from "@/features/auth";
 import useIsMobile from "@/hooks/use-mobile";
+import Sidebar from "./Sidebar";
 
 const Navbar = () => {
   const [isMenuOpened, setIsMenuOpened] = useState(false);
   const isMobile = useIsMobile();
+  const { user } = useAuth();
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -35,10 +37,10 @@ const Navbar = () => {
         </div>
 
         <img
-          src="https://i.pravatar.cc/300"
+          src={user?.avatar || "/icons/happr-icon.jpg"}
           alt="Avatar"
           loading="eager"
-          className="w-10 h-10 object-cover border border-border rounded-full"
+          className="w-10 h-10 bg-card object-cover border border-border rounded-full"
         />
       </nav>
 

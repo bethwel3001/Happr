@@ -6,10 +6,9 @@ import FieldErrorMsg from "./FieldErrorMsg";
 import ChooseUsernameForm from "./ChooseUsernameForm";
 import GoogleAuthButton from "./GoogleAuthButton";
 
-import { isAxiosError } from "axios";
-import type { FieldError } from "../types";
-import useSignup from "../hooks/useSignup";
+import useAuth from "../hooks/useAuth";
 import useClearFieldError from "../hooks/useClearFieldError";
+import type { AuthFormError } from "../types";
 
 type FormProps = {
   initialUsername: string;
@@ -26,42 +25,27 @@ const SignupForm = ({ initialUsername }: FormProps) => {
   const [password, setPassword] = useState("");
 
   const clearFieldError = useClearFieldError(setFieldsError);
-  const { mutate: signup, isPending } = useSignup();
+  const { signup, isSigningUp } = useAuth();
 
   useEffect(() => {
     setUsername(initialUsername);
     setIsUsernameChosen(!!initialUsername);
   }, [initialUsername]);
 
-  const handleSignup = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    signup(
-      {
-        email: email.trim(),
-        username: username.trim(),
-        password: password.trim()
-      },
-      {
-        onSuccess: () => {
-          setEmail("");
-          setPassword("");
-          setFieldsError(null);
-        },
-        onError: (error: unknown) => {
-          if (isAxiosError(error) && error.response?.data?.errors) {
-            const errObj = error.response.data.errors.reduce(
-              (acc: Record<string, string[]>, curr: FieldError) => {
-                acc[curr.field] = curr.errors;
-                return acc;
-              },
-              {}
-            );
-            setFieldsError(errObj);
-          }
-        }
+    try {
+      const res = await signup({ email, username, password });
+
+      if (res.success) {
+        setEmail("");
+        setPassword("");
       }
-    );
+    } catch (error: unknown) {
+      const e = error as AuthFormError;
+      if (e.fieldsError) setFieldsError(e.fieldsError);
+    }
   };
 
   return (
@@ -95,7 +79,7 @@ const SignupForm = ({ initialUsername }: FormProps) => {
             name="email"
             type="email"
             value={email}
-            disabled={isPending}
+            disabled={isSigningUp}
             onChange={e => {
               setEmail(e.target.value);
               clearFieldError("email");
@@ -118,7 +102,7 @@ const SignupForm = ({ initialUsername }: FormProps) => {
             name="password"
             type="password"
             value={password}
-            disabled={isPending}
+            disabled={isSigningUp}
             onChange={e => {
               setPassword(e.target.value);
               clearFieldError("password");
@@ -128,10 +112,10 @@ const SignupForm = ({ initialUsername }: FormProps) => {
           />
 
           <Button
-            disabled={!email || !password || isPending}
+            disabled={!email || !password || isSigningUp}
             className="w-full h-14"
           >
-            {isPending ? "Signing up..." : "Sign up"}
+            {isSigningUp ? "Signing up..." : "Sign up"}
           </Button>
         </form>
       ) : (

@@ -20,6 +20,10 @@ interface SigninResponse {
   message: string;
 }
 
+type AuthFormError = {
+  fieldsError?: Record<string, string[]> | null;
+};
+
 interface AuthFuncResponse {
   success: boolean;
   fieldsError?: Record<string, string[]> | null;
@@ -43,6 +47,7 @@ export type {
   UsernameAvailability,
   SignupResponse,
   SigninResponse,
+  AuthFormError,
   EmailVerificationResponse,
   AuthFuncResponse,
   AuthContextType

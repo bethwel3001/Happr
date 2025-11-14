@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import {
   InvalidEmailVerification,
   LoadingEmailVerification,
@@ -10,7 +10,6 @@ import {
 const EmailVerification = () => {
   const [countdown, setCountdown] = useState<number>(5);
 
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const verificationToken = searchParams.get("token") ?? "";
 
@@ -30,7 +29,7 @@ const EmailVerification = () => {
       }, 1000);
 
       const timeout = setTimeout(() => {
-        navigate(isInvalid ? "/signup" : "/complete-setup");
+        window.location.href = isInvalid ? "/signup" : "/complete-setup";
       }, 5000);
 
       return () => {
@@ -38,7 +37,7 @@ const EmailVerification = () => {
         clearTimeout(timeout);
       };
     }
-  }, [isInvalid, isSuccess, navigate]);
+  }, [isInvalid, isSuccess]);
 
   if (isInvalid)
     return (
