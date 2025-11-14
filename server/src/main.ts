@@ -37,7 +37,7 @@ async function bootstrap() {
 
   app.use(helmet());
   app.enableCors({
-    origin: [process.env.FRONTEND_DOMAIN!],
+    origin: [process.env.FRONTEND_DOMAIN!, process.env.BACKEND_DOMAIN!],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -80,6 +80,8 @@ async function bootstrap() {
     .setDescription('API documentation for Happr')
     .setVersion('1.0')
     .addServer(process.env.BACKEND_DOMAIN!)
+    .addCookieAuth('access_token')
+    .addCookieAuth('refresh_token')
     .addBearerAuth({
       type: 'http',
       scheme: 'bearer',
@@ -91,6 +93,9 @@ async function bootstrap() {
 
   SwaggerModule.setup('/docs', app, document, {
     jsonDocumentUrl: 'docs/json',
+    swaggerOptions: {
+      withCredentials: true,
+    },
   });
 
   app.useLogger(new Logger());
