@@ -1,86 +1,61 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import LandingPage from "@/pages/LandingPage";
 import SupportPage from "@/pages/SupportPage";
 
-// Auth Pages
 const AuthLayout = lazy(() =>
   import("@/features/auth").then(module => ({ default: module.Layout }))
 );
-const SignupPage = lazy(() => import("@/pages/SignUp"));
-const SigninPage = lazy(() => import("@/pages/SignIn"));
-const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
-const EmailVerification = lazy(() => import("@/pages/EmailVerification"));
-
-// User Pages
 const UserPagesLayout = lazy(
   () => import("@/components/layouts/UserPagesLayout")
 );
-const OnboardingPage = lazy(() => import("@/pages/Onboarding"));
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const SupportersPage = lazy(() => import("@/pages/Supporters"));
-const PayoutPage = lazy(() => import("@/pages/Payout"));
-const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
 
-// pages array
-const pages: { path: string; element: React.FC; cat: "auth" | "user" }[] = [
-  { path: "/signup", element: SignupPage, cat: "auth" },
-  { path: "/signin", element: SigninPage, cat: "auth" },
-  { path: "/reset-password", element: ResetPassword, cat: "auth" },
-  { path: "/email-verification", element: EmailVerification, cat: "auth" },
-  { path: "/complete-setup", element: OnboardingPage, cat: "auth" },
-  { path: "/dashboard", element: Dashboard, cat: "user" },
-  { path: "/supporters", element: SupportersPage, cat: "user" },
-  { path: "/payout", element: PayoutPage, cat: "user" },
-  { path: "/settings", element: SettingsPage, cat: "user" }
-];
+// Auth Pages
+const authPages = {
+  signup: lazy(() => import("@/pages/SignUp")),
+  signin: lazy(() => import("@/pages/SignIn")),
+  resetPassword: lazy(() => import("@/pages/ResetPassword")),
+  emailVerification: lazy(() => import("@/pages/EmailVerification")),
+  completeSetup: lazy(() => import("@/pages/Onboarding"))
+};
+
+// User Pages
+const userPages = {
+  dashboard: lazy(() => import("@/pages/Dashboard")),
+  supporters: lazy(() => import("@/pages/Supporters")),
+  payout: lazy(() => import("@/pages/Payout")),
+  settings: lazy(() => import("@/pages/SettingsPage"))
+};
 
 const App = () => {
   return (
     <>
-      <BrowserRouter>
+      <Suspense fallback={<LoadingScreen />}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
 
-          {/* Auth Routes */}
           <Route element={<AuthLayout />}>
-            {pages
-              .filter(page => page.cat === "auth")
-              .map(page => (
-                <Route
-                  key={page.path}
-                  path={page.path}
-                  element={<page.element />}
-                />
-              ))}
+            {Object.entries(authPages).map(([path, Component]) => (
+              <Route key={path} path={`/${path}`} element={<Component />} />
+            ))}
           </Route>
 
-          {/* User Routes */}
           <Route element={<UserPagesLayout />}>
-            {pages
-              .filter(page => page.cat === "user")
-              .map(page => (
-                <Route
-                  key={page.path}
-                  path={page.path}
-                  element={
-                    <Suspense fallback={<LoadingScreen />}>
-                      <page.element />
-                    </Suspense>
-                  }
-                />
-              ))}
+            {Object.entries(userPages).map(([path, Component]) => (
+              <Route key={path} path={`/${path}`} element={<Component />} />
+            ))}
           </Route>
 
           <Route path="/:username" element={<SupportPage />} />
         </Routes>
-      </BrowserRouter>
+      </Suspense>
 
-      <Toaster />
+      <Toaster duration={2000} />
     </>
   );
 };
+
 export default App;

@@ -10,6 +10,7 @@ import {
   LogOut
 } from "lucide-react";
 import useIsMobile from "@/hooks/use-mobile";
+import { useAuth } from "@/features/auth";
 
 type NavLinks = { icon: React.ElementType; text: string; url: string };
 
@@ -27,6 +28,7 @@ const Sidebar = ({
 }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
+  const { signout, isSigningOut } = useAuth();
 
   return (
     <motion.div
@@ -36,10 +38,11 @@ const Sidebar = ({
     >
       {isMobile && (
         <button
+          disabled={isSigningOut}
           className="my-2 self-end"
           onClick={() => setIsMenuOpened(false)}
         >
-          <X size={34} />
+          <X size={34} className={`${isSigningOut ? "opacity-40" : ""}`} />
         </button>
       )}
 
@@ -53,7 +56,9 @@ const Sidebar = ({
               location.pathname === url
                 ? "text-primary"
                 : "text-card-foreground"
-            } hover:text-primary`}
+            } hover:text-primary ${
+              isSigningOut ? "pointer-events-none opacity-50" : ""
+            }`}
           >
             <Icon />
             {text}
@@ -64,9 +69,12 @@ const Sidebar = ({
       <hr className="border border-border opacity-80 my-2" />
 
       <button
-        onClick={() => setIsMenuOpened(false)}
-        className="self-start flex items-center gap-3
-        text-destructive-foreground text-md"
+        onClick={() => {
+          // setIsMenuOpened(false);
+          signout();
+        }}
+        disabled={isSigningOut}
+        className="self-start flex items-center gap-3 text-destructive-foreground text-md disabled:opacity-60"
       >
         <LogOut /> Signout
       </button>
