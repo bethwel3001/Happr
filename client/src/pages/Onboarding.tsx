@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+// import { useAuth } from "@/features/auth";
 import Button from "@/components/ui/Button";
 import {
   StepAnimator,
@@ -10,6 +11,8 @@ import {
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  //  const { user } = useAuth();
+
   const [currentStep, setCurrentStep] = useState<number>(1);
   const totalSteps: number = 3;
 

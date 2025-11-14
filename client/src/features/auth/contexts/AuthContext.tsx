@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { isAxiosError } from "axios";
 import getUser from "../api/getUser";
@@ -24,12 +24,21 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+const excludedPaths = [
+  "/signin",
+  "/signup",
+  "/reset-password",
+  "/email-verification"
+];
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isUserAuthenticated, setIsUserAuthenticated] =
     useState<boolean>(false);
   const [user, setUser] = useState<UserData | null>(null);
 
-  const navigate = useNavigate();
+  const location = useLocation();
+  const queryClient = useQueryClient();
+
   const { mutate: rawSignup, isPending: isSigningUp } = useSignup();
   const { mutate: rawSignin, isPending: isSigningIn } = useSignin();
   const { mutate: rawSignout, isPending: isSigningOut } = useSignout();
@@ -40,15 +49,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   });
 
   useEffect(() => {
+    const isExcluded =
+      location.pathname === "/" ||
+      excludedPaths.some(path => location.pathname.startsWith(path));
+
     if (userQuery.isSuccess && userQuery.data) {
       setUser(userQuery.data.data);
       setIsUserAuthenticated(true);
     }
 
-    if (userQuery.isError && userQuery.error instanceof Error) {
+    if (userQuery.isError && !isExcluded) {
       toast.error("An error has occurred");
     }
-  }, [userQuery.isSuccess, userQuery.data, userQuery.isError, userQuery.error]);
+  }, [
+    userQuery.isSuccess,
+    userQuery.data,
+    userQuery.isError,
+    location.pathname
+  ]);
 
   const signup = (data: SignupInputs): Promise<AuthFuncResponse> => {
     return new Promise<AuthFuncResponse>((resolve, reject) => {
@@ -87,7 +105,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           password: data.password.trim()
         },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
+            await queryClient.invalidateQueries({
+              queryKey: ["getUser"],
+              exact: true
+            });
             resolve({ success: true });
           },
           onError: (error: unknown) => {
@@ -114,7 +136,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       onSuccess: () => {
         setUser(null);
         setIsUserAuthenticated(false);
-        setTimeout(() => navigate("/signin"), 1500);
       }
     });
   };

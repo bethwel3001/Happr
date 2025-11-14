@@ -6,6 +6,9 @@ import LoadingScreen from "@/components/ui/LoadingScreen";
 import LandingPage from "@/pages/LandingPage";
 import SupportPage from "@/pages/SupportPage";
 
+// route guards
+import { ProtectedRoute, PublicRoute } from "@/components/guards";
+
 const AuthLayout = lazy(() =>
   import("@/features/auth").then(module => ({ default: module.Layout }))
 );
@@ -17,9 +20,9 @@ const UserPagesLayout = lazy(
 const authPages = {
   signup: lazy(() => import("@/pages/SignUp")),
   signin: lazy(() => import("@/pages/SignIn")),
-  resetPassword: lazy(() => import("@/pages/ResetPassword")),
-  emailVerification: lazy(() => import("@/pages/EmailVerification")),
-  completeSetup: lazy(() => import("@/pages/Onboarding"))
+  "reset-assword": lazy(() => import("@/pages/ResetPassword")),
+  "email-verification": lazy(() => import("@/pages/EmailVerification")),
+  "complete-setup": lazy(() => import("@/pages/Onboarding"))
 };
 
 // User Pages
@@ -39,13 +42,35 @@ const App = () => {
 
           <Route element={<AuthLayout />}>
             {Object.entries(authPages).map(([path, Component]) => (
-              <Route key={path} path={`/${path}`} element={<Component />} />
+              <Route
+                key={path}
+                path={`/${path}`}
+                element={
+                  path === "complete-setup" ? (
+                    <ProtectedRoute>
+                      <Component />
+                    </ProtectedRoute>
+                  ) : (
+                    <PublicRoute>
+                      <Component />
+                    </PublicRoute>
+                  )
+                }
+              />
             ))}
           </Route>
 
           <Route element={<UserPagesLayout />}>
             {Object.entries(userPages).map(([path, Component]) => (
-              <Route key={path} path={`/${path}`} element={<Component />} />
+              <Route
+                key={path}
+                path={`/${path}`}
+                element={
+                  <ProtectedRoute>
+                    <Component />
+                  </ProtectedRoute>
+                }
+              />
             ))}
           </Route>
 

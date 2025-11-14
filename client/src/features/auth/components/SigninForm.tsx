@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import FieldErrorMsg from "./FieldErrorMsg";
 import GoogleAuthButton from "./GoogleAuthButton";
 
-import { isAxiosError } from "axios";
-import type { FieldError } from "../types";
-import useSignin from "../hooks/useSignin";
+import useAuth from "../hooks/useAuth";
 import useClearFieldError from "../hooks/useClearFieldError";
+import type { AuthFormError } from "../types";
 
 const SigninForm = () => {
   const [email, setEmail] = useState<string>("");
@@ -18,39 +17,18 @@ const SigninForm = () => {
     string[]
   > | null>(null);
 
-  const navigate = useNavigate();
   const clearFieldError = useClearFieldError(setFieldsError);
-  const { mutate: signin, isPending } = useSignin();
+  const { signin, isSigningIn } = useAuth();
 
-  const handleSignin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSignin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    signin(
-      {
-        email: email.trim(),
-        password: password.trim()
-      },
-      {
-        onSuccess: () => {
-          setEmail("");
-          setPassword("");
-
-          setTimeout(() => navigate("/dashboard"), 2000);
-        },
-        onError: (error: unknown) => {
-          if (isAxiosError(error) && error.response?.data?.errors) {
-            const errObj = error.response.data.errors.reduce(
-              (acc: Record<string, string[]>, curr: FieldError) => {
-                acc[curr.field] = curr.errors;
-                return acc;
-              },
-              {}
-            );
-            setFieldsError(errObj);
-          }
-        }
-      }
-    );
+    try {
+      await signin({ email, password });
+    } catch (error: unknown) {
+      const e = error as AuthFormError;
+      if (e.fieldsError) setFieldsError(e.fieldsError);
+    }
   };
 
   return (
@@ -73,7 +51,7 @@ const SigninForm = () => {
           name="email"
           type="email"
           value={email}
-          disabled={isPending}
+          disabled={isSigningIn}
           onChange={e => {
             setEmail(e.target.value);
             clearFieldError("email");
@@ -92,7 +70,7 @@ const SigninForm = () => {
           id="password-input"
           name="password"
           type="password"
-          disabled={isPending}
+          disabled={isSigningIn}
           value={password}
           onChange={e => {
             setPassword(e.target.value);
@@ -106,10 +84,10 @@ const SigninForm = () => {
         </Link>
 
         <Button
-          disabled={!email || !password || isPending}
+          disabled={!email || !password || isSigningIn}
           className="w-full h-14"
         >
-          {isPending ? "Authenticating..." : "Sign In"}
+          {isSigningIn ? "Authenticating..." : "Sign In"}
         </Button>
       </form>
 
