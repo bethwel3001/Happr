@@ -22,7 +22,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import type { AuthenticatedRequest } from '../../common/guards/auth.guard';
 
-@ApiTags('Auth')
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -73,7 +73,7 @@ export class AuthController {
     @Query('token') token: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ApiResponseDTO> {
-    const { access_token, refresh_token } =
+    const { access_token, refresh_token, is_onboarded } =
       await this.authService.verifyEmail(token);
 
     res.cookie('access_token', access_token, {
@@ -93,7 +93,7 @@ export class AuthController {
     return {
       success: true,
       message: 'Email verified successfully!',
-      data: [],
+      data: { is_onboarded },
     };
   }
 

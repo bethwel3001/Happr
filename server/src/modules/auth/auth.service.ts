@@ -142,9 +142,11 @@ export class AuthService {
     };
   }
 
-  async verifyEmail(
-    token: string,
-  ): Promise<{ access_token: string; refresh_token: string }> {
+  async verifyEmail(token: string): Promise<{
+    access_token: string;
+    refresh_token: string;
+    is_onboarded: boolean;
+  }> {
     try {
       const decoded = this.jwt.verify<DecodedMailToken>(token, {
         secret: process.env.JWT_SECRET!,
@@ -191,7 +193,7 @@ export class AuthService {
         },
       });
 
-      return { access_token, refresh_token };
+      return { access_token, refresh_token, is_onboarded: user.is_onboarded };
     } catch {
       throw new BadRequestException({
         success: false,
