@@ -10,7 +10,7 @@ datasource db {
 model User {
   id              String         @id @default(cuid())
   email           String         @unique
-  password        String?        // nullable for Google users
+  password        String?
   username        String         @unique
   bio             String?
   avatar          String?
@@ -18,7 +18,8 @@ model User {
   display_name    String?
   website_link    String?        @default("")
   phone_number    String?
-  auth_provider   String         @default("local") // "local" or "google"
+  is_onboarded    Boolean        @default(false)
+  auth_provider   String         @default("local")
   is_verified     Boolean        @default(false)
   created_at      DateTime       @default(now())
   updated_at      DateTime       @updatedAt
@@ -27,8 +28,8 @@ model User {
   bank_account    BankAccount?
   bank_account_id String?        @unique
   refresh_tokens  RefreshToken[]
-  donations       Donation[]     @relation("DonationsReceived") // donations received
-  supports        Donation[]     @relation("DonationsGiven")    // donations given
+  donations       Donation[]     @relation("DonationsReceived")
+  supports        Donation[]     @relation("DonationsGiven")
 
   @@index([username, email])
 }

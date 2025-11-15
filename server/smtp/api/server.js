@@ -34,7 +34,7 @@ app.get('/api/send-email', async (req, res) => {
   try {
     if (type === 'verification') {
       const verifyLink = `${process.env.FRONTEND_DOMAIN}/email-verification?token=${token}&username=${username}`;
-      await transporter.sendMail({
+      transporter.sendMail({
         from: `"Happr" <${process.env.GMAIL_AUTH_USER}>`,
         to: email,
         subject: 'Verify your email to complete your registration',
@@ -49,7 +49,7 @@ app.get('/api/send-email', async (req, res) => {
         `,
       });
     } else if (type === 'welcome') {
-      await transporter.sendMail({
+      transporter.sendMail({
         from: `"Charming Dc at Happr" <${process.env.GMAIL_AUTH_USER}>`,
         to: email,
         subject: "Welcome to Happr 🎉, Let's get you smiling!",
@@ -79,7 +79,7 @@ app.get('/api/send-email', async (req, res) => {
         `,
       });
     } else if (type === 'otp') {
-      await transporter.sendMail({
+      transporter.sendMail({
         from: `"Samuel at Happr" <${process.env.GMAIL_AUTH_USER}>`,
         to: email,
         subject: 'OTP to Update Your Payout Settings',
@@ -90,7 +90,7 @@ app.get('/api/send-email', async (req, res) => {
               <p style="font-size: 16px; line-height: 1.7;">Hi <strong>${username}</strong>, you requested an OTP to change your payout information.</p>
               <p style="font-size: 16px; line-height: 1.7;">Enter the OTP below on your dashboard to securely update your bank information:</p>
               <h2 style="background-color: #f3f4f6; display: inline-block; padding: 12px 24px; border-radius: 6px; letter-spacing: 3px; font-size: 28px; color: #111; text-align: center;">${otp}</h2>
-              <p style="margin-top: 16px; font-size: 14px; color: #555;">This OTP is valid for <strong>${expiry}</strong>. Do not share it with anyone.</p>
+              <p style="margin-top: 16px; font-size: 14px; color: #555;">This OTP is valid for <strong>15 minutes</strong>. Do not share it with anyone.</p>
               <p style="margin-top: 16px; font-size: 14px; color: #555;">If you did not request this, you can safely ignore this email. Your bank details remain secure and encrypted.</p>
               <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
               <p style="font-size: 13px; color: #9ca3af; text-align: center;">&copy; ${new Date().getFullYear()} Happr. All rights reserved.</p>
