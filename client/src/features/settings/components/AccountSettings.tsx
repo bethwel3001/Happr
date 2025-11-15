@@ -3,7 +3,9 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 
 const AccountSettings = () => {
-  const [email, setEmail] = useState<string>("adebayomuis32@gmail.com");
+  const username = "charmingdc";
+  const [usernameState, setUsernameState] = useState<string>("");
+  const [email, setEmail] = useState<string>("charmingdc002@gmail.com");
 
   return (
     <div
@@ -48,7 +50,26 @@ const AccountSettings = () => {
           Deleting your account will erase all data associated with it.
         </p>
 
-        <Button variant="destructive" className="mt-4">
+        <label
+          htmlFor="username-input"
+          className="font-bold text-xs text-muted-foreground mt-4 ml-1"
+        >
+          Enter your username
+        </label>
+        <Input
+          type="text"
+          id="username-input"
+          value={usernameState}
+          placeholder={username}
+          onChange={e => setUsernameState(e.target.value)}
+          className="my-1"
+        />
+
+        <Button
+          variant="destructive"
+          disabled={usernameState !== username}
+          className="mt-4"
+        >
           Delete Account
         </Button>
       </div>

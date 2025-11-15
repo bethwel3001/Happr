@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import { useAuth } from "@/features/auth";
 import Button from "@/components/ui/Button";
 import {
   StepAnimator,
@@ -11,37 +10,11 @@ import {
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  //  const { user } = useAuth();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [triggerSubmit, setTriggerSubmit] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [currentStep, setCurrentStep] = useState<number>(1);
-  const totalSteps: number = 3;
-
-  // form inputs
-  const [name, setName] = useState("");
-  const [about, setAbout] = useState("");
-  const [userLink, setUserLink] = useState("");
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-
-  // Object mapping of steps to components
-  const steps: Record<number, React.ReactNode> = {
-    1: <Welcome />,
-    2: (
-      <ProfileSetup
-        name={name}
-        setName={setName}
-        about={about}
-        setAbout={setAbout}
-        userLink={userLink}
-        setUserLink={setUserLink}
-        setAvatarFile={setAvatarFile}
-      />
-    ),
-    3: <AllDone />
-  };
-
-  const handleSubmit = async () => {
-    console.log(name, about, userLink, avatarFile);
-  };
+  const totalSteps = 3;
 
   return (
     <section
@@ -50,13 +23,26 @@ const Onboarding = () => {
     >
       <StepAnimator currentStep={currentStep} totalSteps={totalSteps} />
 
-      {steps[currentStep] || null}
+      {currentStep === 1 && <Welcome />}
+
+      {currentStep === 2 && (
+        <ProfileSetup
+          submit={triggerSubmit}
+          onSubmitComplete={() => {
+            setTriggerSubmit(false);
+            setCurrentStep(prev => prev + 1);
+          }}
+          onLoadingChange={setIsLoading}
+        />
+      )}
+
+      {currentStep === 3 && <AllDone />}
 
       <Button
-        onClick={async () => {
+        disabled={isLoading}
+        onClick={() => {
           if (currentStep === 2) {
-            await handleSubmit();
-            setCurrentStep(prev => prev + 1);
+            setTriggerSubmit(true);
           } else if (currentStep === totalSteps) {
             navigate("/dashboard");
           } else {
@@ -64,7 +50,11 @@ const Onboarding = () => {
           }
         }}
       >
-        {currentStep === totalSteps ? "Goto Dashboard" : "Next Step"}
+        {isLoading
+          ? "Updating info..."
+          : currentStep === totalSteps
+          ? "Goto Dashboard"
+          : "Next Step"}
       </Button>
     </section>
   );

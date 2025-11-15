@@ -144,6 +144,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isFetchingUser: userQuery.isLoading,
     isUserAuthenticated,
     user,
+    setUser,
     signup,
     isSigningUp,
     signin,

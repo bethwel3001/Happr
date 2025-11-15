@@ -12,8 +12,8 @@ const Welcome = () => {
         className="w-48 h-56 my-4"
       />
 
-      <h2 className="text-2xl font-semibold text-primary">
-        Welcome onboard, Charmingdc 🎉
+      <h2 className="self-start text-2xl font-semibold text-primary text-left">
+        Welcome onboard 🎉
       </h2>
 
       <p className="text-muted-foreground max-w-sm">

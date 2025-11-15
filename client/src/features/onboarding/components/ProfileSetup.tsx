@@ -1,67 +1,88 @@
-import type { Dispatch, SetStateAction } from "react";
-import Input from "@/components/ui/Input";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/features/auth";
 import { AvatarUploader } from "@/features/settings";
+import Input from "@/components/ui/Input";
 
 type PageProps = {
-  name: string;
-  setName: Dispatch<SetStateAction<string>>;
-  about: string;
-  setAbout: Dispatch<SetStateAction<string>>;
-  userLink: string;
-  setUserLink: Dispatch<SetStateAction<string>>;
-  setAvatarFile: Dispatch<SetStateAction<File | null>>;
+  submit: boolean;
+  onSubmitComplete: () => void;
+  onLoadingChange: (loading: boolean) => void;
 };
 
 const ProfileSetup = ({
-  name,
-  setName,
-  about,
-  setAbout,
-  userLink,
-  setUserLink,
-  setAvatarFile
+  submit,
+  onSubmitComplete,
+  onLoadingChange
 }: PageProps) => {
+  const { user } = useAuth();
+
+  const [name, setName] = useState<string>("");
+  const [about, setAbout] = useState<string>("");
+  const [userLink, setUserLink] = useState<string>("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+
+  const handleSubmit = async () => {
+    onLoadingChange(true);
+
+    try {
+      console.log("SUBMITTING:", { name, about, userLink, avatarFile });
+
+      await new Promise(res => setTimeout(res, 1000));
+
+      onSubmitComplete();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      onLoadingChange(false);
+    }
+  };
+
+  useEffect(() => {
+    if (submit) {
+      handleSubmit();
+    }
+  }, [submit]);
+
   return (
     <form
-      aria-label="onboarding welcome page"
+      aria-label="onboarding profile setup page"
       className="w-full flex flex-col gap-6 [&_label]:font-bold"
     >
-      <h3 className="text-2xl text-center"> Setup your page </h3>
+      <h3 className="text-2xl text-center">Setup your page</h3>
 
       <div className="w-full flex items-center justify-center">
         <AvatarUploader
-          currentUrl={`https://ui-avatars.com/api/?name=Charmingdc&background=random&bold=true&size=128.png`}
+          currentUrl={user?.avatar}
           size="large"
           onFileSelect={file => setAvatarFile(file)}
         />
       </div>
 
-      <div className="w-full flex flex-col gap-3">
-        <label htmlFor="name-input"> Name </label>
+      <div className="flex flex-col gap-3">
+        <label htmlFor="name-input">Name</label>
         <Input
-          type="text"
           id="name-input"
           value={name}
           onChange={e => setName(e.target.value)}
         />
       </div>
 
-      <div className="w-full flex flex-col gap-3">
-        <label htmlFor="about-input"> About </label>
+      <div className="flex flex-col gap-3">
+        <label htmlFor="about-input">About</label>
         <textarea
           id="about-input"
           autoComplete="off"
           value={about}
           onChange={e => setAbout(e.target.value)}
-          className="w-full h-[10rem] p-3 text-sm bg-input text-input-foreground border border-input rounded-lg"
+          className="w-full h-[10rem] p-3 text-sm bg-input border border-input rounded-lg"
         />
       </div>
 
-      <div className="w-full flex flex-col gap-3">
-        <label htmlFor="link-input"> Website or social link </label>
+      <div className="flex flex-col gap-3">
+        <label htmlFor="link-input">Website or social link</label>
         <Input
-          type="url"
           id="link-input"
+          type="url"
           value={userLink}
           onChange={e => setUserLink(e.target.value)}
         />
