@@ -11,6 +11,7 @@ import { generateCryptographicOtp } from '../../common/utils/generate.token';
 import { redis } from '../../common/config/redis.config';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
+import crypto from 'crypto';
 
 interface FixedCompleteUserDTO {
   id: string;
@@ -65,10 +66,136 @@ interface UserDetailsResponse extends FixedCompleteUserDTO {
 
 @Injectable()
 export class UserService {
+  private readonly encryptionKey: Buffer;
+
   constructor(
     private prisma: PrismaService,
     @InjectQueue('email-queue') private emailQueue: Queue,
-  ) {}
+  ) {
+    if (!process.env.ENCRYPTION_KEY) {
+      throw new Error('Bank encryption is missing!');
+    }
+
+    this.encryptionKey = Buffer.from(process.env.ENCRYPTION_KEY, 'hex');
+  }
+
+  private encryptBankDetails(bankDetails: {
+    bank_name: string;
+    account_number: string;
+    account_name: string;
+  }): string {
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv('aes-256-gcm', this.encryptionKey, iv);
+
+    const encrypted = Buffer.concat([
+      cipher.update(JSON.stringify(bankDetails), 'utf8'),
+      cipher.final(),
+    ]);
+    const tag = cipher.getAuthTag();
+
+    return Buffer.concat([iv, tag, encrypted]).toString('base64');
+  }
+
+  private decryptBankDetails(encryptedBankDetails: string): {
+    bank_name: string;
+    account_number: string;
+    account_name: string;
+  } {
+    const data = Buffer.from(encryptedBankDetails, 'base64');
+    const iv = data.subarray(0, 12);
+    const tag = data.subarray(12, 28);
+    const encryptedData = data.subarray(28);
+
+    const decipher = crypto.createDecipheriv(
+      'aes-256-gcm',
+      this.encryptionKey,
+      iv,
+    );
+    decipher.setAuthTag(tag);
+
+    const decrypted = Buffer.concat([
+      decipher.update(encryptedData),
+      decipher.final(),
+    ]).toString('utf8');
+
+    return JSON.parse(decrypted) as {
+      bank_name: string;
+      account_name: string;
+      account_number: string;
+    };
+  }
+
+  async updatePayoutDetails(
+    userId: string,
+    dto: UpdatePayoutDetailsDTO,
+  ): Promise<
+    ApiResponseDTO<{
+      bank_name: string;
+      account_name: string;
+      account_number: string;
+    }>
+  > {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user)
+      throw new NotFoundException({
+        success: false,
+        data: [],
+        message: 'User does not exist',
+      });
+    if (!user.is_verified)
+      throw new ForbiddenException({
+        success: false,
+        data: [],
+        message: 'Your account is not verified yet, check your email.',
+      });
+
+    const storedOtp = await redis.get(`otp:${userId}`);
+    if (!storedOtp || storedOtp !== dto.otp)
+      throw new BadRequestException({
+        success: false,
+        data: [],
+        message: 'Invalid or expired OTP.',
+      });
+
+    const encrypted_bank_account = this.encryptBankDetails({
+      bank_name: dto.bankName,
+      account_number: dto.accountNumber,
+      account_name: dto.accountName,
+    });
+
+    const existingBankAccount = await this.prisma.bankAccount.findUnique({
+      where: { id: userId },
+    });
+
+    if (existingBankAccount) {
+      await this.prisma.bankAccount.update({
+        where: { id: userId },
+        data: {
+          encrypted_bank_account,
+          updated_at: new Date(),
+        },
+      });
+    } else {
+      await this.prisma.bankAccount.create({
+        data: {
+          id: userId,
+          encrypted_bank_account,
+        },
+      });
+    }
+
+    await redis.del(`otp:${userId}`);
+
+    return {
+      success: true,
+      data: {
+        bank_name: dto.bankName,
+        account_name: dto.accountName,
+        account_number: dto.accountNumber,
+      },
+      message: 'Payout details updated successfully.',
+    };
+  }
 
   async getUserDetails(
     _id: string,
@@ -106,13 +233,7 @@ export class UserService {
         is_verified: true,
         created_at: true,
         updated_at: true,
-        bank_account: {
-          select: {
-            bank_name: true,
-            account_name: true,
-            account_number: true,
-          },
-        },
+        bank_account: { select: { encrypted_bank_account: true } },
         _count: {
           select: {
             donations: true,
@@ -136,6 +257,17 @@ export class UserService {
         data: [],
         message: 'Your account is not verified yet, check your email.',
       });
+    }
+    let bank_account: {
+      bank_name: string;
+      account_name: string;
+      account_number: string;
+    } | null = null;
+
+    if (user.bank_account?.encrypted_bank_account) {
+      bank_account = this.decryptBankDetails(
+        user.bank_account.encrypted_bank_account,
+      );
     }
 
     const [totalReceived, totalGiven, uniqueSupporters, recentDonations] =
@@ -181,6 +313,7 @@ export class UserService {
 
     const responseData: UserDetailsResponse = {
       ...safeUser,
+      bank_account,
       stats: {
         total_donations_received: _count.donations || 0,
         total_donations_given: _count.supports || 0,
@@ -238,20 +371,29 @@ export class UserService {
         is_verified: true,
         created_at: true,
         updated_at: true,
-        bank_account: {
-          select: { bank_name: true, account_name: true, account_number: true },
-        },
+        bank_account: { select: { encrypted_bank_account: true } },
       },
     });
 
+    let bank_account: {
+      bank_name: string;
+      account_name: string;
+      account_number: string;
+    } | null = null;
+
+    if (updatedUser.bank_account?.encrypted_bank_account) {
+      bank_account = this.decryptBankDetails(
+        updatedUser.bank_account.encrypted_bank_account,
+      );
+    }
+
     return {
       success: true,
-      data: updatedUser,
+      data: { ...updatedUser, bank_account },
       message: 'User profile updated successfully.',
     };
   }
 
-  // ... rest of your methods remain the same
   async deleteUserAccount(
     authUserId: string,
     targetUserId: string,
@@ -288,9 +430,9 @@ export class UserService {
   }
 
   async generateOtp(
-    userId: string,
+    email: string,
   ): Promise<ApiResponseDTO<{ otpSent: boolean }>> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user)
       throw new NotFoundException({
         success: false,
@@ -305,86 +447,17 @@ export class UserService {
       });
 
     const { otp } = generateCryptographicOtp();
-    await redis.set(`otp:${userId}`, otp, 'EX', 300);
+    await redis.set(`otp:${user.id}`, otp, 'EX', 300);
 
     await this.emailQueue.add('send-otp', {
       type: 'otp',
-      data: { email: user.email, username: user.username, otp },
+      data: { email, username: user.username, otp },
     });
 
     return {
       success: true,
       data: { otpSent: true },
       message: 'OTP sent successfully.',
-    };
-  }
-
-  async updatePayoutDetails(
-    userId: string,
-    dto: UpdatePayoutDetailsDTO,
-  ): Promise<
-    ApiResponseDTO<{
-      bank_name: string;
-      account_name: string;
-      account_number: string;
-    }>
-  > {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user)
-      throw new NotFoundException({
-        success: false,
-        data: [],
-        message: 'User does not exist',
-      });
-    if (!user.is_verified)
-      throw new ForbiddenException({
-        success: false,
-        data: [],
-        message: 'Your account is not verified yet, check your email.',
-      });
-
-    const storedOtp = await redis.get(`otp:${userId}`);
-    if (!storedOtp || storedOtp !== dto.otp)
-      throw new BadRequestException({
-        success: false,
-        data: [],
-        message: 'Invalid or expired OTP.',
-      });
-
-    const existingBankAccount = await this.prisma.bankAccount.findUnique({
-      where: { id: userId },
-    });
-    if (existingBankAccount) {
-      await this.prisma.bankAccount.update({
-        where: { id: userId },
-        data: {
-          bank_name: dto.bankName,
-          account_name: dto.accountName,
-          account_number: dto.accountNumber,
-          updated_at: new Date(),
-        },
-      });
-    } else {
-      await this.prisma.bankAccount.create({
-        data: {
-          id: userId,
-          bank_name: dto.bankName,
-          account_name: dto.accountName,
-          account_number: dto.accountNumber,
-        },
-      });
-    }
-
-    await redis.del(`otp:${userId}`);
-
-    return {
-      success: true,
-      data: {
-        bank_name: dto.bankName,
-        account_name: dto.accountName,
-        account_number: dto.accountNumber,
-      },
-      message: 'Payout details updated successfully.',
     };
   }
 }

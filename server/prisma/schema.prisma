@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url = env("DATABASE_URL")
 }
 
 model User {
@@ -47,9 +47,7 @@ model RefreshToken {
 
 model BankAccount {
   id             String   @id @default(cuid())
-  bank_name      String
-  account_name   String
-  account_number String   @unique
+  encrypted_bank_account String
   user_id        String?  @unique
   user           User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
   updated_at     DateTime @updatedAt

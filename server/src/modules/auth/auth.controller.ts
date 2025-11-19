@@ -6,6 +6,7 @@ import {
   Body,
   Query,
   HttpCode,
+  Patch,
   Res,
   Req,
   Delete,
@@ -14,11 +15,18 @@ import {
 import {
   SignupDTO,
   SignInDTO,
-  usernameAvailabilityDTO,
+  ResetPasswordDTO,
+  UsernameAvailabilityDTO,
+  ForgotEmailPasswordDTO,
 } from '../../dtos/auth.module.dto';
 import { AuthService } from './auth.service';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import type { AuthenticatedRequest } from '../../common/guards/auth.guard';
 
@@ -39,7 +47,7 @@ export class AuthController {
     description: 'Username availability checked successfully',
     type: ApiResponseDTO,
   })
-  checkusername(@Query() dto: usernameAvailabilityDTO) {
+  checkusername(@Query() dto: UsernameAvailabilityDTO) {
     return this.authService.checkUsernameAvailability(dto);
   }
 
@@ -141,7 +149,7 @@ export class AuthController {
   @ApiOperation({
     summary: 'Logout user',
     description:
-      'Logs out a user by deleting their JWT tokens from their browser, and also deleting their refresh token from the db.',
+      'Logs out a user by deleting their JWT tokens from their browser, and also deleting refresh token from DB.',
   })
   @ApiResponse({
     status: 200,
@@ -154,20 +162,55 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<ApiResponseDTO> {
     await this.authService.signout(req.user._id);
+
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     });
+
     res.clearCookie('refresh_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     });
+
     return {
       success: true,
       message: 'User signed out successfully',
       data: [],
     };
+  }
+
+  @Post('verify-forgot-email-password-otp')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Verify OTP for forgot password' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'OTP verified. Access token generated. Use token to reset password.',
+    type: ApiResponseDTO,
+  })
+  async forgotPassword(@Body() dto: ForgotEmailPasswordDTO) {
+    return this.authService.verifyForgotPassword(dto);
+  }
+
+  @Patch('reset-password')
+  @HttpCode(200)
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Reset password using the token generated after OTP verification',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset successfully',
+    type: ApiResponseDTO,
+  })
+  resetPasswordWithEmail(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: ResetPasswordDTO,
+  ) {
+    return this.authService.resetPassword(req.user._id, dto);
   }
 }
