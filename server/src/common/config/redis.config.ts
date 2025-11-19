@@ -1,4 +1,6 @@
 import Redis from 'ioredis';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const REDIS_URL = process.env.REDIS_URL as string;
 if (!REDIS_URL) throw new Error('Redis Connection Url is missing');

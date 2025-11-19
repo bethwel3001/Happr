@@ -2,7 +2,9 @@ import {
   BadRequestException,
   Injectable,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
+import { redis } from '../../common/config/redis.config';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
@@ -10,7 +12,9 @@ import { ApiResponseDTO } from '../../dtos/api.response.dto';
 import {
   SignupDTO,
   SignInDTO,
-  usernameAvailabilityDTO,
+  UsernameAvailabilityDTO,
+  ResetPasswordDTO,
+  ForgotEmailPasswordDTO,
 } from '../../dtos/auth.module.dto';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -19,11 +23,20 @@ import {
   generateRefreshToken,
   generateMailToken,
 } from '../../common/utils/generate.token';
+import crypto from 'crypto';
 
 interface DecodedMailToken {
   id: string;
   username: string;
   email: string;
+  iat?: number;
+  exp?: number;
+}
+
+interface JwtPayload {
+  _id: string;
+  email: string;
+  phone?: string;
   iat?: number;
   exp?: number;
 }
@@ -61,8 +74,20 @@ export class AuthService {
     return !unauthorizedUsernames.includes(username.toLowerCase());
   }
 
+  private async getOtpForUser(userId: string): Promise<string | null> {
+    return redis.get(`otp:${userId}`);
+  }
+
+  private async clearOtpForUser(userId: string): Promise<void> {
+    await redis.del(`otp:${userId}`);
+  }
+
+  private generateVerificationCode(): string {
+    return crypto.randomInt(0, 1_000_000).toString().padStart(6, '0');
+  }
+
   async checkUsernameAvailability(
-    dto: usernameAvailabilityDTO,
+    dto: UsernameAvailabilityDTO,
   ): Promise<ApiResponseDTO> {
     if (!this.isUsernameAllowed(dto.username)) {
       throw new BadRequestException({
@@ -258,5 +283,126 @@ export class AuthService {
     await this.prisma.refreshToken.deleteMany({
       where: { user_id: userId },
     });
+  }
+
+  async forgotPassword(dto: ForgotEmailPasswordDTO): Promise<ApiResponseDTO> {
+    const { email } = dto;
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      throw new NotFoundException({
+        success: false,
+        message: 'User not found',
+        data: [],
+      });
+    }
+
+    const otp = this.generateVerificationCode();
+    await redis.set(`otp:${user.id}`, otp, 'EX', 15 * 60);
+
+    await this.emailQueue.add('send-otp', {
+      type: 'forgot-password-otp',
+      data: { email, username: user.username, otp, expiry: '15 minutes' },
+    });
+
+    return { success: true, data: [], message: 'OTP sent to email' };
+  }
+
+  async verifyForgotPassword(
+    dto: ForgotEmailPasswordDTO & { otp?: string },
+  ): Promise<ApiResponseDTO> {
+    const { email, otp } = dto;
+
+    if (!email || !otp) {
+      throw new BadRequestException({
+        success: false,
+        message: 'Email and OTP are required',
+        data: [],
+      });
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new NotFoundException({
+        success: false,
+        message: 'User not found',
+        data: [],
+      });
+    }
+
+    const storedOtp = await this.getOtpForUser(user.id);
+
+    if (!storedOtp) {
+      throw new BadRequestException({
+        success: false,
+        message: 'OTP expired or not found',
+        data: [],
+      });
+    }
+
+    if (storedOtp !== otp) {
+      throw new BadRequestException({
+        success: false,
+        message: 'Invalid OTP',
+        data: [],
+      });
+    }
+
+    await this.clearOtpForUser(user.id);
+
+    const payload: JwtPayload = {
+      _id: user.id,
+      email: user.email ?? '',
+    };
+
+    const accessToken = this.jwt.sign(payload, {
+      secret: process.env.JWT_SECRET!,
+      expiresIn: '15m',
+    });
+
+    return {
+      success: true,
+      message:
+        'User is legit, access token generated, use it to reset password',
+      data: { accessToken },
+    };
+  }
+
+  async resetPassword(
+    userId: string,
+    dto: ResetPasswordDTO,
+  ): Promise<ApiResponseDTO> {
+    const { newPassword } = dto;
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException({
+        success: false,
+        message: 'User not found',
+        data: [],
+      });
+    }
+
+    const password = await argon2.hash(newPassword);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password,
+        updated_at: new Date(),
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Password reset successfully',
+      data: [],
+    };
   }
 }

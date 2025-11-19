@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Body,
+  Post,
   Patch,
   Param,
   Req,
@@ -21,7 +22,11 @@ import {
   ApiConsumes,
 } from '@nestjs/swagger';
 import { AuthGuard } from '../../common/guards/auth.guard';
-import { UpdateUserDTO, UpdatePayoutDetailsDTO } from '../../dtos/user.dto';
+import {
+  UpdateUserDTO,
+  GenerateOtpDTO,
+  UpdatePayoutDetailsDTO,
+} from '../../dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto'; // Add this import
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -54,6 +59,20 @@ export class UserController {
     @Req() req: AuthenticatedRequest,
   ): Promise<ApiResponseDTO<any>> {
     return this.userService.getUserDetails(req.user._id);
+  }
+
+  @Post('generate-otp')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Generate OTP for forgot password, payout or other use cases',
+    description:
+      'Sends an OTP to the user email to verify before updating sensitive info',
+  })
+  async generateOtp(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: GenerateOtpDTO,
+  ): Promise<ApiResponseDTO<{ otpSent: boolean }>> {
+    return this.userService.generateOtp(dto.email);
   }
 
   @Patch(':id')
@@ -129,23 +148,7 @@ export class UserController {
     @Param('id') id: string,
     @Req() req: AuthenticatedRequest,
   ): Promise<ApiResponseDTO> {
-    // Add return type
     return this.userService.deleteUserAccount(req.user._id, id);
-  }
-
-  @Get('generate-otp')
-  @HttpCode(200)
-  @ApiOperation({
-    summary: 'Generate OTP for payout or other use cases',
-    description:
-      'Sends an OTP to the user email to verify before updating sensitive info',
-  })
-  @UseGuards(AuthGuard)
-  async requestPayoutOtp(
-    @Req() req: AuthenticatedRequest,
-  ): Promise<ApiResponseDTO<{ otpSent: boolean }>> {
-    const userId = req?.user._id;
-    return this.userService.generateOtp(userId);
   }
 
   @Patch('payout-details')

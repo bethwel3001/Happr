@@ -178,3 +178,9 @@ export class CompleteUserDatabaseDTO {
   @IsDate()
   updated_at: Date;
 }
+
+export class GenerateOtpDTO {
+  @ApiProperty({ description: 'Generate otp' })
+  @IsEmail()
+  email: string;
+}
