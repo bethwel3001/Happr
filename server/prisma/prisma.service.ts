@@ -11,8 +11,8 @@ export class PrismaService
   implements OnModuleInit, OnModuleDestroy
 {
   constructor() {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super({
-      datasourceUrl: process.env.DATABASE_URL,
       log: ['query', 'info', 'warn', 'error'],
     });
 
@@ -22,10 +22,12 @@ export class PrismaService
   }
 
   async onModuleInit() {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     await this.$connect();
   }
 
   async onModuleDestroy() {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     await this.$disconnect();
   }
 }
