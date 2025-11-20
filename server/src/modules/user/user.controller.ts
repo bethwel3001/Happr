@@ -27,7 +27,7 @@ import {
   GenerateOtpDTO,
   UpdatePayoutDetailsDTO,
 } from '../../dtos/user.dto';
-import { ApiResponseDTO } from '../../dtos/api.response.dto'; // Add this import
+import { ApiResponseDTO } from '../../dtos/api.response.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -35,7 +35,6 @@ import { CompleteUserDatabaseDTO } from '../../dtos/user.dto';
 import type { AuthenticatedRequest } from '../../common/guards/auth.guard';
 
 @ApiTags('User Management')
-@ApiBearerAuth()
 @Controller('user')
 export class UserController {
   constructor(
@@ -44,6 +43,7 @@ export class UserController {
   ) {}
 
   @Get('me')
+  @ApiBearerAuth()
   @HttpCode(200)
   @ApiOperation({
     summary: 'Get authenticated user info',
@@ -77,6 +77,7 @@ export class UserController {
 
   @Patch(':id')
   @HttpCode(200)
+  @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @UseGuards(AuthGuard)
   @UseInterceptors(
@@ -139,6 +140,7 @@ export class UserController {
 
   @Delete(':id')
   @HttpCode(200)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Delete account',
     description: 'Deletes the account of the authenticated user.',
@@ -152,6 +154,7 @@ export class UserController {
   }
 
   @Patch('payout-details')
+  @ApiBearerAuth()
   @HttpCode(200)
   @ApiOperation({
     summary: 'Update payout details',
