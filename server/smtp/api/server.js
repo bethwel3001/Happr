@@ -34,7 +34,7 @@ app.get('/api/send-email', async (req, res) => {
   try {
     if (type === 'verification') {
       const verifyLink = `${process.env.FRONTEND_DOMAIN}/email-verification?token=${token}&username=${username}`;
-      transporter.sendMail({
+      await transporter.sendMail({
         from: `"Happr" <${process.env.GMAIL_AUTH_USER}>`,
         to: email,
         subject: 'Verify your email to complete your registration',
@@ -49,7 +49,7 @@ app.get('/api/send-email', async (req, res) => {
         `,
       });
     } else if (type === 'welcome') {
-      transporter.sendMail({
+      await transporter.sendMail({
         from: `"Charming Dc at Happr" <${process.env.GMAIL_AUTH_USER}>`,
         to: email,
         subject: "Welcome to Happr 🎉, Let's get you smiling!",
@@ -79,7 +79,7 @@ app.get('/api/send-email', async (req, res) => {
         `,
       });
     } else if (type === 'otp') {
-      transporter.sendMail({
+      await transporter.sendMail({
         from: `"Samuel at Happr" <${process.env.GMAIL_AUTH_USER}>`,
         to: email,
         subject: 'OTP request',
