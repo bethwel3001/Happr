@@ -41,7 +41,7 @@ app.get('/api/send-email', async (req, res) => {
         html: `
           <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
             <p>Hey ${username},</p>
-            <p>I'm <strong>CharmingDc</strong>, creator of <strong>Happr</strong>. Thanks for signing up! To finish creating your account, please verify your email address.</p>
+            <p>I'm <strong>Charming Dc</strong>, creator of <strong>Happr</strong>. Thanks for signing up! To finish creating your account, please verify your email address.</p>
             <p>This link will expire in <strong>${expiry}</strong>.</p>
             <a href="${verifyLink}" style="display: inline-block; padding: 10px 20px; background-color: #4f46e5; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">Verify Email</a>
             <p style="margin-top: 16px; font-size: 14px; color: #555;">If you didn’t create a Happr account, you can safely ignore this email.</p>
@@ -86,7 +86,7 @@ app.get('/api/send-email', async (req, res) => {
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 40px; color: #111827;">
             <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-              <h2 style="text-align: center; color: #111827;">Update Payout Settings</h2>
+              <h2 style="text-align: center; color: #111827;">Requested OTP</h2>
               <p style="font-size: 16px; line-height: 1.7;">Hi <strong>${username}</strong>, you requested an OTP to perform a specific action on your accout.</p>
               <p style="font-size: 16px; line-height: 1.7;">This is the otp below:</p>
               <h2 style="background-color: #f3f4f6; display: inline-block; padding: 12px 24px; border-radius: 6px; letter-spacing: 3px; font-size: 28px; color: #111; text-align: center;">${otp}</h2>
