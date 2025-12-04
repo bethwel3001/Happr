@@ -5,16 +5,12 @@ import { UserService } from '../modules/user/user.service';
 import { Logger } from '@nestjs/common';
 import { UpdateUserDTO } from '../dtos/user.dto';
 
-interface UpdateUserImageDTO extends UpdateUserDTO {
-  avatar?: string;
-  cover_photo?: string;
-}
 
 interface ImageJobData {
   userId: string;
   fileBuffer: Buffer;
   fileName: string;
-  uploadType: 'avatar' | 'cover';
+  uploadType: 'avatar' | 'cover_photo';
 }
 
 @Processor('image-queue')
@@ -29,7 +25,7 @@ export class ImageWorker extends WorkerHost {
     const { userId, fileBuffer, fileName, uploadType } = job.data;
 
     try {
-      const folder = uploadType === 'cover' ? 'happr/covers' : 'happr/avatars';
+      const folder = uploadType === 'cover_photo' ? 'happr/covers' : 'happr/avatars';
 
       const result: { secure_url: string } = await new Promise(
         (resolve, reject) => {
@@ -45,8 +41,8 @@ export class ImageWorker extends WorkerHost {
         },
       );
 
-      const updateField: UpdateUserImageDTO =
-        uploadType === 'cover'
+      const updateField: Partial<UpdateUserDTO>  =
+        uploadType === 'cover_photo'
           ? { cover_photo: result.secure_url }
           : { avatar: result.secure_url };
 

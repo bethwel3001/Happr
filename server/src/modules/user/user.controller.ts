@@ -78,13 +78,18 @@ export class UserController {
   @Patch(':id')
   @HttpCode(200)
   @ApiBearerAuth()
+  @ApiOperation({
+      summary: 'Update user information',
+      description:
+      'Updates the profile information of the authenticated user, including optional avatar and cover photo uploads.',
+  })
   @ApiConsumes('multipart/form-data')
   @UseGuards(AuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor(
       [
         { name: 'avatar', maxCount: 1 },
-        { name: 'cover', maxCount: 1 },
+        { name: 'cover_photo', maxCount: 1 },
       ],
       {
         limits: { fileSize: 7 * 1024 * 1024 },
@@ -114,7 +119,7 @@ export class UserController {
     @UploadedFiles()
     files: {
       avatar?: Express.Multer.File[];
-      cover?: Express.Multer.File[];
+      cover_photo?: Express.Multer.File[];
     },
   ): Promise<ApiResponseDTO<any>> {
     if (files?.avatar?.[0]) {
@@ -126,12 +131,12 @@ export class UserController {
       });
     }
 
-    if (files?.cover?.[0]) {
+    if (files?.cover_photo?.[0]) {
       await this.imageQueue.add('upload-image', {
         userId: id,
-        fileBuffer: files.cover[0].buffer,
-        fileName: files.cover[0].originalname,
-        uploadType: 'cover',
+        fileBuffer: files.cover_photo[0].buffer,
+        fileName: files.cover_photo[0].originalname,
+        uploadType: 'cover_photo',
       });
     }
 
