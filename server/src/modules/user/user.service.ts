@@ -335,64 +335,76 @@ export class UserService {
     return apiResponse;
   }
 
-  async updateUserInfo(
-    id: string,
-    dto: UpdateUserDTO,
-  ): Promise<ApiResponseDTO<FixedCompleteUserDTO>> {
-    const user = await this.prisma.user.findUnique({ where: { id } });
-    if (!user)
-      throw new NotFoundException({
-        success: false,
-        data: [],
-        message: 'User does not exist',
-      });
-    if (!user.is_verified)
-      throw new ForbiddenException({
-        success: false,
-        data: [],
-        message: 'Your account is not verified yet, check your email.',
-      });
-
-    const updatedUser = await this.prisma.user.update({
-      where: { id },
-      data: { ...dto },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        bio: true,
-        display_name: true,
-        avatar: true,
-        cover_photo: true,
-        website_link: true,
-        phone_number: true,
-        is_onboarded: true,
-        auth_provider: true,
-        is_verified: true,
-        created_at: true,
-        updated_at: true,
-        bank_account: { select: { encrypted_bank_account: true } },
-      },
+ async updateUserInfo(
+  id: string,
+  dto: UpdateUserDTO,
+): Promise<ApiResponseDTO<FixedCompleteUserDTO>> {
+  const user = await this.prisma.user.findUnique({ where: { id } });
+  if (!user)
+    throw new NotFoundException({
+      success: false,
+      data: [],
+      message: 'User does not exist',
+    });
+  if (!user.is_verified)
+    throw new ForbiddenException({
+      success: false,
+      data: [],
+      message: 'Your account is not verified yet, check your email.',
     });
 
-    let bank_account: {
-      bank_name: string;
-      account_name: string;
-      account_number: string;
-    } | null = null;
+  const prismaUpdateData: any = {};
 
-    if (updatedUser.bank_account?.encrypted_bank_account) {
-      bank_account = this.decryptBankDetails(
-        updatedUser.bank_account.encrypted_bank_account,
-      );
-    }
+  if (dto.username !== undefined) prismaUpdateData.username = dto.username;
+  if (dto.display_name !== undefined) prismaUpdateData.display_name = dto.display_name;
+  if (dto.bio !== undefined) prismaUpdateData.bio = dto.bio;
+  if (dto.phone_number !== undefined) prismaUpdateData.phone_number = dto.phone_number;
+  if (dto.website_link !== undefined) prismaUpdateData.website_link = dto.website_link;
+  if (dto.is_onboarded !== undefined) prismaUpdateData.is_onboarded = dto.is_onboarded;
+  if (dto.email !== undefined) prismaUpdateData.email = dto.email;
+  if (dto.avatar !== undefined && typeof dto.avatar === 'string') prismaUpdateData.avatar = dto.avatar;
+  if (dto.cover_photo !== undefined && typeof dto.cover_photo === 'string') prismaUpdateData.cover_photo = dto.cover_photo;
 
-    return {
-      success: true,
-      data: { ...updatedUser, bank_account },
-      message: 'User profile updated successfully.',
-    };
+  const updatedUser = await this.prisma.user.update({
+    where: { id },
+    data: prismaUpdateData,
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      bio: true,
+      display_name: true,
+      avatar: true,
+      cover_photo: true,
+      website_link: true,
+      phone_number: true,
+      is_onboarded: true,
+      auth_provider: true,
+      is_verified: true,
+      created_at: true,
+      updated_at: true,
+      bank_account: { select: { encrypted_bank_account: true } },
+    },
+  });
+
+  let bank_account: {
+    bank_name: string;
+    account_name: string;
+    account_number: string;
+  } | null = null;
+
+  if (updatedUser.bank_account?.encrypted_bank_account) {
+    bank_account = this.decryptBankDetails(
+      updatedUser.bank_account.encrypted_bank_account,
+    );
   }
+
+  return {
+    success: true,
+    data: { ...updatedUser, bank_account },
+    message: 'User profile updated successfully.',
+  };
+}
 
   async deleteUserAccount(
     authUserId: string,
