@@ -362,8 +362,6 @@ export class UserService {
   if (dto.website_link !== undefined) prismaUpdateData.website_link = dto.website_link;
   if (dto.is_onboarded !== undefined) prismaUpdateData.is_onboarded = dto.is_onboarded;
   if (dto.email !== undefined) prismaUpdateData.email = dto.email;
-  if (dto.avatar !== undefined && typeof dto.avatar === 'string') prismaUpdateData.avatar = dto.avatar;
-  if (dto.cover_photo !== undefined && typeof dto.cover_photo === 'string') prismaUpdateData.cover_photo = dto.cover_photo;
 
   const updatedUser = await this.prisma.user.update({
     where: { id },
@@ -374,8 +372,6 @@ export class UserService {
       username: true,
       bio: true,
       display_name: true,
-      avatar: true,
-      cover_photo: true,
       website_link: true,
       phone_number: true,
       is_onboarded: true,
