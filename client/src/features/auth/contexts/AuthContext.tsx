@@ -7,6 +7,7 @@ import getUser from "../api/getUser";
 import useSignup from "../hooks/useSignup";
 import useSignin from "../hooks/useSignin";
 import useSignout from "../hooks/useSignout";
+import useDeleteAccount from "../hooks/useDeleteAccount";
 import type {
   SignupInputs,
   SigninInputs,
@@ -42,6 +43,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { mutate: rawSignup, isPending: isSigningUp } = useSignup();
   const { mutate: rawSignin, isPending: isSigningIn } = useSignin();
   const { mutate: rawSignout, isPending: isSigningOut } = useSignout();
+  const { mutate: rawAccountDeletion, isPending: isDeletingAccount } =
+    useDeleteAccount();
 
   const userQuery = useQuery({
     queryKey: ["getUser"],
@@ -140,6 +143,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
   };
 
+  const deleteAccount = () => {
+    if (!user) return;
+
+    rawAccountDeletion(user.id, {
+      onSuccess: () => {
+        setUser(null);
+        setIsUserAuthenticated(false);
+      }
+    });
+  };
+
   const value = {
     isFetchingUser: userQuery.isLoading,
     isUserAuthenticated,
@@ -150,7 +164,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signin,
     isSigningIn,
     signout,
-    isSigningOut
+    isSigningOut,
+    deleteAccount,
+    isDeletingAccount
   };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

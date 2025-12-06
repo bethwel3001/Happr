@@ -36,6 +36,7 @@ const updateUser = async (data: UserUpdate): Promise<ApiResponse> => {
     const form = new FormData();
 
     (Object.keys(data) as (keyof UserUpdate)[]).forEach(key => {
+      if (key === "id") return;
       appendIfPresent(form, key, data[key]);
     });
 
@@ -47,6 +48,7 @@ const updateUser = async (data: UserUpdate): Promise<ApiResponse> => {
       }
     );
 
+    console.log(res);
     return {
       success: res.success,
       message: res.message,

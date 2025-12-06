@@ -11,7 +11,7 @@ import {
 const Onboarding = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
-  const [triggerSubmit, setTriggerSubmit] = useState(false);
+  const [submitCount, setSubmitCount] = useState(0); // <- changed
   const [isLoading, setIsLoading] = useState(false);
 
   const totalSteps = 3;
@@ -27,9 +27,8 @@ const Onboarding = () => {
 
       {currentStep === 2 && (
         <ProfileSetup
-          submit={triggerSubmit}
+          submitCount={submitCount} // <- use counter
           onSubmitComplete={() => {
-            setTriggerSubmit(false);
             setCurrentStep(prev => prev + 1);
           }}
           onLoadingChange={setIsLoading}
@@ -42,7 +41,7 @@ const Onboarding = () => {
         disabled={isLoading}
         onClick={() => {
           if (currentStep === 2) {
-            setTriggerSubmit(true);
+            setSubmitCount(prev => prev + 1);
           } else if (currentStep === totalSteps) {
             navigate("/dashboard");
           } else {

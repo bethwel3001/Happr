@@ -1,47 +1,62 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/features/auth";
+import { useUpdateUser } from "@/features/settings";
 import { AvatarUploader } from "@/features/settings";
 import Input from "@/components/ui/Input";
 
 type PageProps = {
-  submit: boolean;
+  submitCount: number;
   onSubmitComplete: () => void;
   onLoadingChange: (loading: boolean) => void;
 };
 
 const ProfileSetup = ({
-  submit,
+  submitCount,
   onSubmitComplete,
   onLoadingChange
 }: PageProps) => {
   const { user } = useAuth();
+  const { updatePublicInfo } = useUpdateUser();
 
-  const [name, setName] = useState<string>("");
-  const [about, setAbout] = useState<string>("");
-  const [userLink, setUserLink] = useState<string>("");
+  const [name, setName] = useState<string>(user?.display_name || "");
+  const [about, setAbout] = useState<string>(user?.bio || "");
+  const [userLink, setUserLink] = useState<string>(user?.website_link || "");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
   const handleSubmit = async () => {
     onLoadingChange(true);
 
     try {
+      if (!name) {
+        toast.error("Display name can't be empty");
+        return;
+      }
+
       console.log("SUBMITTING:", { name, about, userLink, avatarFile });
 
-      await new Promise(res => setTimeout(res, 1000));
+      await updatePublicInfo({
+        avatar: avatarFile,
+        display_name: name,
+        bio: about,
+        website_link: userLink
+      });
 
+      // Only on success
       onSubmitComplete();
     } catch (err) {
       console.error(err);
+      toast.error("Failed to update profile");
     } finally {
       onLoadingChange(false);
     }
   };
 
   useEffect(() => {
-    if (submit) {
+    if (submitCount > 0) {
       handleSubmit();
     }
-  }, [submit]);
+  }, [submitCount]);
 
   return (
     <form
