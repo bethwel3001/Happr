@@ -1,9 +1,14 @@
 import { toast } from "sonner";
+import { useAuth } from "@/features/auth";
 import useCopyToClipboard from "@/hooks/useCopyToClipboard";
 
 const GreetUser = () => {
+  const { user } = useAuth();
   const { copy, copied } = useCopyToClipboard();
-  const userPageLink = `${window.location.origin}/Charmingdc`;
+
+  const username: string = user?.username || "";
+  const displayName: string = user?.display_name || user?.username || "";
+  const userPageLink: string = `${window.location.origin}/${username}`;
 
   const handleCopy = async (text: string) => {
     try {
@@ -16,7 +21,7 @@ const GreetUser = () => {
   return (
     <section className="w-full flex items-center justify-between">
       <div>
-        <p className="font-bold text-md mb-[.1rem]"> Hi, Charmingdc, </p>
+        <p className="font-bold text-md mb-[.1rem]"> Hi, {displayName}, </p>
         <p className="text-sm"> {userPageLink} </p>
       </div>
 

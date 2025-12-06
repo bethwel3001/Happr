@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from "react";
 import type { SigninInputs, SignupInputs, UserData } from "../types";
 
 type UsernameAvailability = {
@@ -35,6 +36,7 @@ interface AuthContextType {
   isFetchingUser: boolean;
   isUserAuthenticated: boolean;
   user: User;
+  setUser: Dispatch<SetStateAction<User>>;
   signup: (data: SignupInputs) => Promise<AuthFuncResponse>;
   isSigningUp: boolean;
   signin: (data: SigninInputs) => Promise<AuthFuncResponse>;
