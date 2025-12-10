@@ -182,6 +182,54 @@ export class AuthController {
     };
   }
 
+  @Get('google-auth')
+  @ApiOperation({
+    summary: 'Get Google OAuth URL',
+    description:
+      'Returns a Google authentication URL. Use this URL on the frontend to temporarily redirect the user to Google login via `window.location.href`.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'The Google OAuth URL as JSON',
+  })
+  googleAuth(): ApiResponseDTO {
+    const authUri = this.authService.generateGoogleAuthUri();
+    return {
+      success: true,
+      message: 'Google OAuth URL generated successfully',
+      data: {
+        url: authUri,
+      },
+    };
+  }
+
+  @Get('google/callback')
+  async handleGoogleAuthCallback(
+    @Query('code') code: string,
+    @Res() res: Response,
+  ) {
+    const { access_token, refresh_token } =
+      await this.authService.googleAuthCallback(code);
+
+    res.cookie('access_token', access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 30 * 60 * 1000,
+    });
+
+    res.cookie('refresh_token', refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.redirect(
+      `${process.env.FRONTEND_DOMAIN}/complete-setup?access_token=${access_token}`,
+    );
+  }
+
   @Post('verify-forgot-email-password-otp')
   @HttpCode(200)
   @ApiOperation({ summary: 'Verify OTP for forgot password' })

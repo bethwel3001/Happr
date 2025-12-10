@@ -15,7 +15,7 @@ export class UsernameAvailabilityDTO {
   @IsLowercase({ message: 'Username must be in lowercase' })
   @IsNotEmpty({ message: 'Username is required' })
   @MinLength(3, { message: 'Username must be at least 3 characters long' })
-  @MaxLength(12, { message: 'Username cannot exceed 12 characters' })
+  @MaxLength(20, { message: 'Username cannot exceed 20 characters' })
   username: string;
 }
 
@@ -28,7 +28,7 @@ export class SignupDTO {
   @ApiProperty()
   @IsNotEmpty({ message: 'Username is required' })
   @MinLength(3, { message: 'Username must be at least 3 characters long' })
-  @MaxLength(12, { message: 'Username cannot exceed 12 characters' })
+  @MaxLength(20, { message: 'Username cannot exceed 20 characters' })
   username: string;
 
   @ApiProperty()

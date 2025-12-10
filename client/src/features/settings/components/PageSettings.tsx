@@ -3,13 +3,14 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import CoverUploader from "./CoverUploader";
 import AvatarUploader from "./AvatarUploader";
+import { useAuth } from "@/features/auth";
 
 const PageSettings = () => {
   const [displayName, setDisplayName] = useState<string>("Charmingdc");
   const [about, setAbout] = useState<string>("");
-  const [userLink, setUserLink] = useState<string>(
-    "https://adebayomuis.is-a.dev"
-  );
+  const { user } = useAuth();
+  console.log(user);
+  const [userLink, setUserLink] = useState<string>("");
 
   return (
     <div aria-labelledby="Page Settings" className="w-full">
@@ -17,16 +18,16 @@ const PageSettings = () => {
 
       <form
         aria-label="account settings form"
-        onSubmit={e => e.preventDefault()}
+        onSubmit={(e) => e.preventDefault()}
         className="w-full flex flex-col gap-10 p-4 border rounded-md mt-4"
       >
         <div className="w-full flex flex-col gap-4">
           <h3 className="text-xl"> Avatar </h3>
 
           <AvatarUploader
-            currentUrl={`https://ui-avatars.com/api/?name=Charmingdc&background=random&bold=true&size=128.png`}
+            currentUrl={`https://ui-avatars.com/api/?name=${user?.username}&background=random&bold=true&size=128.png`}
             size="large"
-            onFileSelect={file => console.log(file)}
+            onFileSelect={(file) => console.log(file)}
           />
         </div>
 
@@ -34,8 +35,8 @@ const PageSettings = () => {
           <h3 className="text-xl"> Cover Photo </h3>
 
           <CoverUploader
-            currentUrl={`https://ui-avatars.com/api/?name=Charmingdc&background=random&bold=true&size=128.png`}
-            onFileSelect={file => console.log(file)}
+            currentUrl={`https://ui-avatars.com/api/?name=${user?.username}&background=random&bold=true&size=128.png`}
+            onFileSelect={(file) => console.log(file)}
           />
         </div>
 
@@ -48,7 +49,7 @@ const PageSettings = () => {
             type="text"
             id="diaplay-name-input"
             value={displayName}
-            onChange={e => setDisplayName(e.target.value)}
+            onChange={(e) => setDisplayName(e.target.value)}
           />
         </div>
 
@@ -61,7 +62,7 @@ const PageSettings = () => {
             id="about-input"
             autoComplete="off"
             value={about}
-            onChange={e => setAbout(e.target.value)}
+            onChange={(e) => setAbout(e.target.value)}
             className="w-full h-[10rem] p-3 text-sm bg-input text-input-foreground border border-input rounded-lg"
           />
         </div>
@@ -75,7 +76,7 @@ const PageSettings = () => {
             type="url"
             id="user-link-input"
             value={userLink}
-            onChange={e => setUserLink(e.target.value)}
+            onChange={(e) => setUserLink(e.target.value)}
           />
         </div>
 
