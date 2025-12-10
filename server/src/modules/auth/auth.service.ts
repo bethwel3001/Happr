@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
   NotFoundException,
 } from '@nestjs/common';
@@ -24,6 +25,14 @@ import {
   generateMailToken,
 } from '../../common/utils/generate.token';
 import crypto from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
+
+interface GoogleTokenPayload {
+  email: string;
+  name: string;
+  picture?: string;
+  createdAt?: Date;
+}
 
 interface DecodedMailToken {
   id: string;
@@ -69,6 +78,16 @@ export class AuthService {
     private jwt: JwtService,
     @InjectQueue('email-queue') private emailQueue: Queue,
   ) {}
+
+  private readonly GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
+  private readonly GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
+  private readonly GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI!;
+
+  private readonly googleClient = new OAuth2Client(
+    this.GOOGLE_CLIENT_ID,
+    this.GOOGLE_CLIENT_SECRET,
+    this.GOOGLE_REDIRECT_URI,
+  );
 
   private isUsernameAllowed(username: string): boolean {
     return !unauthorizedUsernames.includes(username.toLowerCase());
@@ -404,5 +423,77 @@ export class AuthService {
       message: 'Password reset successfully',
       data: [],
     };
+  }
+
+  generateGoogleAuthUri(): string {
+    try {
+      const authUrl = this.googleClient.generateAuthUrl({
+        access_type: 'offline',
+        scope: [
+          'https://www.googleapis.com/auth/userinfo.email',
+          'https://www.googleapis.com/auth/userinfo.profile',
+        ],
+        prompt: 'select_account consent',
+      });
+
+      return authUrl;
+    } catch (error: unknown) {
+      throw new InternalServerErrorException({
+        success: false,
+        message: 'Failed to generate Google auth URI',
+        error,
+        data: [],
+      });
+    }
+  }
+
+  async googleAuthCallback(
+    code: string,
+  ): Promise<{ access_token: string; refresh_token: string; user: any }> {
+    if (!code) {
+      throw new BadRequestException('Missing code');
+    }
+
+    try {
+      const { tokens } = await this.googleClient.getToken(code);
+      this.googleClient.setCredentials(tokens);
+
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken: tokens.id_token!,
+        audience: this.GOOGLE_CLIENT_ID,
+      });
+
+      const payload = ticket.getPayload() as GoogleTokenPayload;
+
+      if (!payload?.email || !payload.name) {
+        throw new BadRequestException('Invalid Google token payload');
+      }
+
+      const { email, name: fullName, picture } = payload;
+
+      let user = await this.prisma.user.findUnique({ where: { email } });
+
+      if (!user) {
+        user = await this.prisma.user.create({
+          data: {
+            email,
+            username: fullName,
+            password: '',
+            avatar:
+              picture ||
+              `https://ui-avatars.com/api/?name=${fullName}&background=random&bold=true&size=128`,
+            auth_provider: 'google',
+            is_verified: true,
+          },
+        });
+      }
+
+      const { access_token } = generateAccessToken(user.id, user.email);
+      const { refresh_token } = generateRefreshToken(user.id, user.email);
+
+      return { access_token, refresh_token, user };
+    } catch (error: unknown) {
+      throw new InternalServerErrorException(error);
+    }
   }
 }
