@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Menu } from "lucide-react";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@/hooks/useAuth";
 import useIsMobile from "@/hooks/use-mobile";
 import Sidebar from "./Sidebar";
 
@@ -8,6 +8,7 @@ const Navbar = () => {
   const [isMenuOpened, setIsMenuOpened] = useState(false);
   const isMobile = useIsMobile();
   const { user } = useAuth();
+  console.log(user);
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -37,7 +38,10 @@ const Navbar = () => {
         </div>
 
         <img
-          src={user?.avatar || "/icons/happr-icon.jpg"}
+          src={
+            user?.avatar ||
+            `https://ui-avatars.com/api/?name=${user?.username}&background=random&bold=true&size=128.png`
+          }
           alt="Avatar"
           loading="eager"
           className="w-10 h-10 bg-card object-cover border border-border rounded-full"

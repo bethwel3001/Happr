@@ -183,6 +183,7 @@ export class AuthController {
   }
 
   @Get('google-auth')
+  @HttpCode(200)
   @ApiOperation({
     summary: 'Get Google OAuth URL',
     description:
@@ -198,7 +199,7 @@ export class AuthController {
       success: true,
       message: 'Google OAuth URL generated successfully',
       data: {
-        url: authUri,
+        uri: authUri,
       },
     };
   }
@@ -208,26 +209,38 @@ export class AuthController {
     @Query('code') code: string,
     @Res() res: Response,
   ) {
-    const { access_token, refresh_token } =
-      await this.authService.googleAuthCallback(code);
+    try {
+      if (!code) {
+        return res.redirect(
+          `${process.env.FRONTEND_DOMAIN}/google/callback?status=error`,
+        );
+      }
 
-    res.cookie('access_token', access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 30 * 60 * 1000,
-    });
+      const { access_token, refresh_token } =
+        await this.authService.googleAuthCallback(code);
 
-    res.cookie('refresh_token', refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+      res.cookie('access_token', access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 30 * 60 * 1000,
+      });
 
-    res.redirect(
-      `${process.env.FRONTEND_DOMAIN}/complete-setup?access_token=${access_token}`,
-    );
+      res.cookie('refresh_token', refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      return res.redirect(
+        `${process.env.FRONTEND_DOMAIN}/complete-google-auth-setup?status=success`,
+      );
+    } catch {
+      return res.redirect(
+        `${process.env.FRONTEND_DOMAIN}/complete-google-auth-setup?status=error`,
+      );
+    }
   }
 
   @Post('verify-forgot-email-password-otp')

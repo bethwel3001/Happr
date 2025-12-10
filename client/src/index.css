@@ -11,34 +11,34 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 255, 254, 255;
-    --foreground: 40, 36, 60;
+    :root {
+        --background: 255, 254, 255;
+        --foreground: 40, 36, 60;
 
-    --card: 248, 246, 252;
-    --card-foreground: 40, 36, 60;
+        --card: 248, 246, 252;
+        --card-foreground: 40, 36, 60;
 
-    --primary: 157, 94, 255;
-    --primary-foreground: 255, 255, 255;
+        --primary: 157, 94, 255;
+        --primary-foreground: 255, 255, 255;
 
-    --muted: 245, 243, 250;
-    --muted-foreground: 115, 105, 140;
+        --muted: 245, 243, 250;
+        --muted-foreground: 115, 105, 140;
 
-    --input: 250, 248, 253;
-    --input-foreground: 40, 36, 60;
-    --input-border: 230, 226, 240;
+        --input: 250, 248, 253;
+        --input-foreground: 40, 36, 60;
+        --input-border: 230, 226, 240;
 
-    --destructive: 254, 202, 202;
-    --destructive-foreground: 185, 28, 28;
+        --destructive: 254, 202, 202;
+        --destructive-foreground: 185, 28, 28;
 
-    --border: 232, 228, 242;
-    --radius: 1rem;
+        --border: 232, 228, 242;
+        --radius: 1rem;
 
-    --accent: 157, 94, 255, 0.08;
-    --accent-foreground: 45, 40, 70;
-  }
+        --accent: 157, 94, 255, 0.08;
+        --accent-foreground: 45, 40, 70;
+    }
 
-  /*
+    /*
   @media (prefers-color-scheme: dark) {
     :root {
       --background: 20, 24, 40;
@@ -57,45 +57,61 @@
       --sidebar-background: 22, 26, 42;
       --sidebar-foreground: 210, 220, 235;
       --sidebar-border: 60, 65, 90;
-    } 
+    }
   } */
 }
 
 @layer base {
-  * {
-    @apply border-border p-0 m-0 outline-none;
-  }
+    * {
+        @apply border-border p-0 m-0 outline-none;
+    }
 
-  html {
-    scroll-behavior: smooth;
-  }
+    html {
+        scroll-behavior: smooth;
+    }
 
-  body {
-    @apply w-screen bg-background font-openSans text-[.9rem] text-foreground;
-  }
+    body {
+        @apply w-screen bg-background font-openSans text-[.9rem] text-foreground;
+    }
 
-  [data-page="userPages"] h1,
-  [data-page="userPages"] h2,
-  [data-page="userPages"] h3,
-  [data-page="authPage"] h1,
-  [data-page="authPage"] h2,
-  [data-page="authPage"] h3 {
-    @apply font-montserrat font-extrabold;
-  }
+    [data-page="userPages"] h1,
+    [data-page="userPages"] h2,
+    [data-page="userPages"] h3,
+    [data-page="authPage"] h1,
+    [data-page="authPage"] h2,
+    [data-page="authPage"] h3 {
+        @apply font-montserrat font-extrabold;
+    }
 
-  [data-page="landing"] h1,
-  [data-page="landing"] h2,
-  [data-page="landing"] h3 {
-    @apply font-fredoka font-bold;
-  }
+    [data-page="landing"] h1,
+    [data-page="landing"] h2,
+    [data-page="landing"] h3 {
+        @apply font-fredoka font-bold;
+    }
 }
 
 /* Hide scrollbars for all browsers */
 .hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
-  display: none;
+    display: none;
+}
+
+/* google auth callback animations */
+@keyframes scale-in {
+    0% {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.animate-scale-in {
+    animation: scale-in 0.4s ease-out forwards;
 }

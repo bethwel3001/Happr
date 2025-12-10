@@ -66,7 +66,7 @@ const JoinUsSection = () => {
           whileInView={{
             opacity: 1,
             y: 0,
-            transition: { duration: 0.6, ease: "easeOut" }
+            transition: { duration: 0.6, ease: "easeOut" },
           }}
           viewport={{ once: true }}
         >
@@ -79,7 +79,7 @@ const JoinUsSection = () => {
           whileInView={{
             opacity: 1,
             scale: 1,
-            transition: { duration: 0.5, ease: "easeOut" }
+            transition: { duration: 0.5, ease: "easeOut" },
           }}
           viewport={{ once: true }}
         >
@@ -89,7 +89,7 @@ const JoinUsSection = () => {
             whileInView={{
               opacity: 1,
               y: 0,
-              transition: { duration: 0.6, ease: "easeOut" }
+              transition: { duration: 0.6, ease: "easeOut" },
             }}
           >
             Musicians, artists, writers, gamers — anyone can receive Smiles from
@@ -105,7 +105,7 @@ const JoinUsSection = () => {
             whileInView={{
               opacity: 1,
               y: 0,
-              transition: { duration: 0.6, ease: "easeOut" }
+              transition: { duration: 0.6, ease: "easeOut" },
             }}
             viewport={{ once: true }}
           >
@@ -120,7 +120,7 @@ const JoinUsSection = () => {
               <input
                 type="text"
                 value={username}
-                onChange={e => {
+                onChange={(e) => {
                   setUsername(e.target.value);
                   setIsAvailable(false);
                 }}
@@ -144,8 +144,8 @@ const JoinUsSection = () => {
                 {isAvailable
                   ? "Claim Page"
                   : isFetching
-                  ? "Checking..."
-                  : "Check Availability"}
+                    ? "Checking..."
+                    : "Check Availability"}
               </CtaButton>
             </motion.div>
           </motion.div>

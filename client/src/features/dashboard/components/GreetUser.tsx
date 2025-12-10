@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@/hooks/useAuth";
 import useCopyToClipboard from "@/hooks/useCopyToClipboard";
 
 const GreetUser = () => {

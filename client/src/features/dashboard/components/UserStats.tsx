@@ -2,11 +2,11 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { formatNaira } from "@/utils/formatters";
-
+import { useAuth } from "@/hooks/useAuth";
 const durationFilters: ("all-time" | "30-days" | "90-days")[] = [
   "all-time",
   "30-days",
-  "90-days"
+  "90-days",
 ];
 
 const UserStats = () => {
@@ -14,6 +14,7 @@ const UserStats = () => {
     "all-time" | "30-days" | "90-days"
   >("all-time");
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const { user } = useAuth();
 
   return (
     <section className="relative w-full flex flex-col gap-4 p-4 border border-border rounded-xl">
@@ -32,12 +33,14 @@ const UserStats = () => {
       <div className="w-full flex flex-wrap gap-5">
         <div className="py-2 px-3 border border-border rounded-md">
           <p>Earnings</p>
-          <h3 className="text-2xl mt-1">{formatNaira(19100)}</h3>
+          <h3 className="text-2xl mt-1">
+            {formatNaira(user?.stats.total_amount_given ?? 0)}
+          </h3>
         </div>
 
         <div className="py-2 px-3 border border-border rounded-md">
           <p>Supporters</p>
-          <h3 className="text-2xl mt-1">10</h3>
+          <h3 className="text-2xl mt-1">{user?.recent_donations.length}</h3>
         </div>
       </div>
 
@@ -59,7 +62,7 @@ const UserStats = () => {
               >
                 {duration.split("-").join(" ")}
               </div>
-            )
+            ),
           )}
         </motion.div>
       )}

@@ -2,22 +2,12 @@ import { Module } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { UserService } from './user.service';
-import { BullModule } from '@nestjs/bullmq';
 import { JwtModule } from '@nestjs/jwt';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
     JwtModule.register({ global: true }),
-    BullModule.registerQueue({
-      name: 'image-queue',
-      connection: { url: process.env.REDIS_URL },
-      defaultJobOptions: {
-        attempts: 5,
-        backoff: { type: 'exponential', delay: 5000 },
-        removeOnComplete: true,
-        removeOnFail: false,
-      },
-    }),
     BullModule.registerQueue({
       name: 'email-queue',
       connection: { url: process.env.REDIS_URL! },

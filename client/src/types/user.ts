@@ -17,10 +17,18 @@ interface UserData {
     account_name: string;
     account_number: string;
   };
+  stats: {
+    total_amount_given: number;
+    total_amount_received: number;
+    total_donations_given: number;
+    total_donations_received: number;
+    total_supporters: number;
+  };
+  recent_donations: [];
   created_at: string | Date;
   updated_at: string | Date;
 }
 
-type User = UserData | null;
+type User = UserData;
 
 export type { UserData, User };

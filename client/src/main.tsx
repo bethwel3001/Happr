@@ -19,5 +19,5 @@ createRoot(document.getElementById("root")!).render(
       </BrowserRouter>
       <ReactQueryDevtools />
     </QueryClientProvider>
-  </StrictMode>
+  </StrictMode>,
 );

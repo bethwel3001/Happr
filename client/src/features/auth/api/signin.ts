@@ -3,17 +3,17 @@ import type { SigninInputs, SigninResponse, ApiResponse } from "../types";
 
 const signin = async ({
   email,
-  password
+  password,
 }: SigninInputs): Promise<SigninResponse> => {
   try {
     const response = await axios.post<ApiResponse>("/api/v1/auth/signin", {
       email,
-      password
+      password,
     });
 
     return {
       success: response.success ? true : false,
-      message: response.message
+      message: response.message,
     };
   } catch (error: unknown) {
     if (error instanceof Error) {

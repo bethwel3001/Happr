@@ -6,7 +6,7 @@ import FieldErrorMsg from "./FieldErrorMsg";
 import ChooseUsernameForm from "./ChooseUsernameForm";
 import GoogleAuthButton from "./GoogleAuthButton";
 
-import useAuth from "../hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import useClearFieldError from "../hooks/useClearFieldError";
 import type { AuthFormError } from "../types";
 
@@ -80,7 +80,7 @@ const SignupForm = ({ initialUsername }: FormProps) => {
             type="email"
             value={email}
             disabled={isSigningUp}
-            onChange={e => {
+            onChange={(e) => {
               setEmail(e.target.value);
               clearFieldError("email");
             }}
@@ -103,7 +103,7 @@ const SignupForm = ({ initialUsername }: FormProps) => {
             type="password"
             value={password}
             disabled={isSigningUp}
-            onChange={e => {
+            onChange={(e) => {
               setPassword(e.target.value);
               clearFieldError("password");
             }}

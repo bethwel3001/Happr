@@ -2,7 +2,7 @@ import { MailRed } from "@/features/auth";
 
 const InvalidEmailVerification = ({
   countdown,
-  errorMsg
+  errorMsg,
 }: {
   countdown: number;
   errorMsg: string;

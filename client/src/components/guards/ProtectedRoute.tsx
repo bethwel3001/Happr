@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@/hooks/useAuth";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 
 interface ProtectedRouteProp {

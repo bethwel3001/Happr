@@ -5,7 +5,7 @@ import Input from "@/components/ui/Input";
 import FieldErrorMsg from "./FieldErrorMsg";
 import GoogleAuthButton from "./GoogleAuthButton";
 
-import useAuth from "../hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import useClearFieldError from "../hooks/useClearFieldError";
 import type { AuthFormError } from "../types";
 
@@ -52,7 +52,7 @@ const SigninForm = () => {
           type="email"
           value={email}
           disabled={isSigningIn}
-          onChange={e => {
+          onChange={(e) => {
             setEmail(e.target.value);
             clearFieldError("email");
           }}
@@ -72,7 +72,7 @@ const SigninForm = () => {
           type="password"
           disabled={isSigningIn}
           value={password}
-          onChange={e => {
+          onChange={(e) => {
             setPassword(e.target.value);
             clearFieldError("password");
           }}

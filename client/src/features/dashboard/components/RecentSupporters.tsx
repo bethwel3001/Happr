@@ -7,7 +7,7 @@ import ErrorBox from "@/components/ui/ErrorBox";
 import {
   SupportersSkeletonLoader,
   DisplaySupporters,
-  NoSupporters
+  NoSupporters,
 } from "@/features/supporters/components";
 import { getSupporters } from "@/features/supporters";
 import type { Supporter } from "@/features/supporters";
@@ -18,11 +18,11 @@ const RecentSupporters = () => {
   const {
     data: supporters = [],
     isLoading,
-    isError
+    isError,
   } = useQuery<Supporter[]>({
     queryFn: () => getSupporters(creatorId, 5),
     queryKey: ["recent", "supporters", creatorId],
-    enabled: !!creatorId
+    enabled: !!creatorId,
   });
 
   return (

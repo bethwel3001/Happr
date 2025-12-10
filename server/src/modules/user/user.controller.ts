@@ -1,6 +1,5 @@
 import {
   Controller,
-  UseInterceptors,
   Delete,
   Get,
   Body,
@@ -10,8 +9,6 @@ import {
   Req,
   UseGuards,
   HttpCode,
-  UnsupportedMediaTypeException,
-  UploadedFiles,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -19,28 +16,22 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiConsumes,
 } from '@nestjs/swagger';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import {
   UpdateUserDTO,
   GenerateOtpDTO,
   UpdatePayoutDetailsDTO,
+  generatePresignedUrlDTO,
 } from '../../dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
 import { CompleteUserDatabaseDTO } from '../../dtos/user.dto';
 import type { AuthenticatedRequest } from '../../common/guards/auth.guard';
 
 @ApiTags('User Management')
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    @InjectQueue('image-queue') private readonly imageQueue: Queue,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   @Get('me')
   @ApiBearerAuth()
@@ -75,71 +66,34 @@ export class UserController {
     return this.userService.generateOtp(dto.email);
   }
 
+  @Post('presigned-url')
+  @HttpCode(200)
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary:
+      'Presigned Url for uploading user avatar photo and cover photo securly!',
+    description:
+      'Presigned Url for uploading user avatar photo and cover photo securly!',
+  })
+  async generatePresignedUrl(
+    @Body() dto: generatePresignedUrlDTO,
+  ): Promise<ApiResponseDTO<any>> {
+    return this.userService.generatePresignedUrl(dto);
+  }
+
   @Patch(':id')
   @HttpCode(200)
   @ApiBearerAuth()
   @ApiOperation({
-      summary: 'Update user information',
-      description:
-      'Updates the profile information of the authenticated user, including optional avatar and cover photo uploads.',
+    summary: 'Update user information',
+    description: 'Updates the profile information of the authenticated user',
   })
-  @ApiConsumes('multipart/form-data')
   @UseGuards(AuthGuard)
-  @UseInterceptors(
-    FileFieldsInterceptor(
-      [
-        { name: 'avatar', maxCount: 1 },
-        { name: 'cover_photo', maxCount: 1 },
-      ],
-      {
-        limits: { fileSize: 7 * 1024 * 1024 },
-        fileFilter: (_req, file, cb) => {
-          const allowed = [
-            'image/jpeg',
-            'image/png',
-            'image/jpg',
-            'image/webp',
-          ];
-          if (!allowed.includes(file.mimetype)) {
-            return cb(
-              new UnsupportedMediaTypeException(
-                'Invalid file type. Only JPEG, PNG, JPG, and WEBP are allowed.',
-              ),
-              false,
-            );
-          }
-          cb(null, true);
-        },
-      },
-    ),
-  )
   async updateUser(
     @Param('id') id: string,
     @Body() dto: UpdateUserDTO,
-    @UploadedFiles()
-    files: {
-      avatar?: Express.Multer.File[];
-      cover_photo?: Express.Multer.File[];
-    },
   ): Promise<ApiResponseDTO<any>> {
-    if (files?.avatar?.[0]) {
-      await this.imageQueue.add('upload-image', {
-        userId: id,
-        fileBuffer: files.avatar[0].buffer,
-        fileName: files.avatar[0].originalname,
-        uploadType: 'avatar',
-      });
-    }
-
-    if (files?.cover_photo?.[0]) {
-      await this.imageQueue.add('upload-image', {
-        userId: id,
-        fileBuffer: files.cover_photo[0].buffer,
-        fileName: files.cover_photo[0].originalname,
-        uploadType: 'cover_photo',
-      });
-    }
-
     return this.userService.updateUserInfo(id, dto);
   }
 
