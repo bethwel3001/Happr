@@ -18,6 +18,9 @@ const PageSettings = () => {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  console.log(user?.avatar);
+  const fallbackAvatar = `https://ui-avatars.com/api/?name=${user?.username}&bold=true&size=128.png`;
+
   const uploadFile = async (file: File): Promise<string | undefined> => {
     if (!file) return undefined;
 
@@ -100,9 +103,6 @@ const PageSettings = () => {
     }
   };
 
-  const r2Base = import.meta.env.VITE_R2_PUBLIC_URL;
-  const fallbackAvatar = `https://ui-avatars.com/api/?name=${user?.username}&bold=true&size=128.png`;
-
   return (
     <div aria-labelledby="Page Settings" className="w-full">
       <h2 className="text-2xl">Page Settings</h2>
@@ -117,9 +117,7 @@ const PageSettings = () => {
         <div className="w-full flex flex-col gap-4">
           <h3 className="text-xl">Avatar</h3>
           <AvatarUploader
-            currentUrl={
-              user?.avatar ? `${r2Base}/${user.avatar}` : fallbackAvatar
-            }
+            currentUrl={user?.avatar ? `{user?.avatar}` : fallbackAvatar}
             size="large"
             onFileSelect={setAvatarFile}
           />
@@ -128,9 +126,7 @@ const PageSettings = () => {
         <div className="w-full flex flex-col gap-4">
           <h3 className="text-xl">Cover Photo</h3>
           <CoverUploader
-            currentUrl={
-              user?.cover_photo ? `${r2Base}/${user.cover_photo}` : undefined
-            }
+            currentUrl={user?.cover_photo ? `${user.cover_photo}` : undefined}
             onFileSelect={setCoverFile}
           />
         </div>

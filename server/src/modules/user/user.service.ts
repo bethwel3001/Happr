@@ -405,9 +405,10 @@ export class UserService {
     if (dto.is_onboarded !== undefined)
       prismaUpdateData.is_onboarded = dto.is_onboarded;
     if (dto.email !== undefined) prismaUpdateData.email = dto.email;
-    if (dto.avatar !== undefined) prismaUpdateData.avatar = dto.avatar;
+    if (dto.avatar !== undefined)
+      prismaUpdateData.avatar = `${process.env.R2_PUBLIC_URL}/${dto.avatar}`;
     if (dto.cover_photo !== undefined)
-      prismaUpdateData.cover_photo = dto.cover_photo;
+      prismaUpdateData.cover_photo = `${process.env.R2_PUBLIC_URL}/${dto.cover_photo}`;
 
     const updatedUser = await this.prisma.user.update({
       where: { id },
@@ -442,7 +443,7 @@ export class UserService {
         updatedUser.bank_account.encrypted_bank_account,
       );
     }
-
+    console.log(updatedUser.avatar);
     return {
       success: true,
       data: {
@@ -485,10 +486,9 @@ export class UserService {
     const objectKey = `uploads/${crypto.randomUUID()}`;
 
     const command = new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME!,
+      Bucket: process.env.R2_BUCKET_ID!,
       Key: objectKey,
       ContentType: content_type,
-      ContentLength: file_size,
     });
 
     try {
