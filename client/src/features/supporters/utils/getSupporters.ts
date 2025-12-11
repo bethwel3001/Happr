@@ -3,7 +3,7 @@ import type { Supporter } from "../types";
 
 const getSupporters = async (
   creatorId: string,
-  limit?: number
+  limit?: number,
 ): Promise<Supporter[]> => {
   console.log(creatorId);
 

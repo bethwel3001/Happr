@@ -26,7 +26,7 @@ const BanksDropDown = () => {
   const { data: banks = [] } = useQuery<Bank[]>({
     queryKey: ["banks", "list"],
     queryFn: getBanksList,
-    staleTime: 1000 * 60 * 60 * 24
+    staleTime: 1000 * 60 * 60 * 24,
   });
 
   return (
@@ -34,7 +34,7 @@ const BanksDropDown = () => {
       <Button
         variant="filled"
         className="w-full flex items-center justify-between py-4 rounded-md"
-        onClick={() => setOpen(prev => !prev)}
+        onClick={() => setOpen((prev) => !prev)}
       >
         <span>{selected ? selected.name : "Select a Bank"}</span>
         <span className="text-gray-500">{open ? "▲" : "▼"}</span>
@@ -49,7 +49,7 @@ const BanksDropDown = () => {
             transition={{ duration: 0.2, ease: "easeInOut" }}
             className="absolute h-64 left-0 mt-1 w-full bg-background border rounded-md overflow-y-auto z-10"
           >
-            {banks.map(bank => (
+            {banks.map((bank) => (
               <motion.li
                 key={bank.id}
                 onClick={() => {

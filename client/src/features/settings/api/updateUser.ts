@@ -1,11 +1,5 @@
 import { axios } from "@/lib";
 
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
-
 export interface UserUpdate {
   id: string;
   email?: string;
@@ -22,14 +16,32 @@ export interface UserUpdate {
 export interface UserData {
   id: string;
   email: string;
+  password: string;
   username: string;
-  bio?: string;
-  display_name?: string;
-  website_link?: string;
-  phone_number?: string;
+  bio: string;
+  avatar: string;
+  cover_photo: string;
+  display_name: string;
+  website_link: string;
+  phone_number: string;
   is_onboarded: boolean;
-  avatar?: string;
-  cover_photo?: string;
+  auth_provider: string;
+  is_verified: boolean;
+  bank_account: {
+    bank_name: string;
+    account_name: string;
+    account_number: string;
+  };
+  stats: {
+    total_amount_given: number;
+    total_amount_received: number;
+    total_donations_given: number;
+    total_donations_received: number;
+    total_supporters: number;
+  };
+  recent_donations: [];
+  created_at: string | Date;
+  updated_at: string | Date;
 }
 
 export interface PresignedUrlRequest {
@@ -43,35 +55,49 @@ export interface PresignedUrlData {
   expiresIn: number;
 }
 
-const updateUser = async (data: UserUpdate): Promise<ApiResponse<UserData>> => {
+interface SimpleApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
+const updateUser = async (
+  data: UserUpdate,
+): Promise<SimpleApiResponse<UserData>> => {
   try {
     const { id, ...payload } = data;
 
-    const res = await axios.patch<ApiResponse<UserData>>(
+    const response = await axios.patch<SimpleApiResponse<UserData>>(
       `/api/v1/user/${id}`,
       payload,
     );
 
-    return res;
+    return response;
   } catch (err: unknown) {
-    if (err instanceof Error) throw err;
-    throw new Error("Something went wrong");
+    const errorMessage =
+      err instanceof Error
+        ? err.message
+        : "Something went wrong while updating user";
+    throw new Error(errorMessage);
   }
 };
 
 const getPresignedUrl = async (
   data: PresignedUrlRequest,
-): Promise<ApiResponse<PresignedUrlData>> => {
+): Promise<SimpleApiResponse<PresignedUrlData>> => {
   try {
-    const res = await axios.post<ApiResponse<PresignedUrlData>>(
+    const response = await axios.post<SimpleApiResponse<PresignedUrlData>>(
       "/api/v1/user/presigned-url",
       data,
     );
 
-    return res;
+    return response;
   } catch (err: unknown) {
-    if (err instanceof Error) throw err;
-    throw new Error("Something went wrong");
+    const errorMessage =
+      err instanceof Error
+        ? err.message
+        : "Something went wrong while getting presigned URL";
+    throw new Error(errorMessage);
   }
 };
 

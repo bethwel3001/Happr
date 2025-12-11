@@ -15,10 +15,10 @@ interface GetUserResponse {
   message: string;
 }
 
-interface ApiResponse {
+interface ApiResponse<T = unknown> {
   success: boolean;
   message: string;
-  data: {};
+  data: T;
 }
 
 export type { UserData, GetUserResponse, ApiResponse };

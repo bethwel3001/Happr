@@ -14,13 +14,13 @@ const getUser = async (): Promise<GetUserResponse> => {
     return {
       success: response.success,
       data: response.data,
-      message: response.message
+      message: response.message,
     };
   } catch (err: unknown) {
     if (err instanceof Error) {
-      throw err;
+      throw "";
     }
-    throw new Error("Something went wrong");
+    throw new Error("");
   }
 };
 
