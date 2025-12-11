@@ -7,7 +7,9 @@ const getSupporters = async (
 ): Promise<Supporter[]> => {
   console.log(creatorId);
 
-  const res = await axios.get<{ supporters: Supporter[] }>("/supporters.json");
+  const res = await axios.get<{ supporters: Supporter[] }>(
+    "/data/supporters.json",
+  );
 
   const supporters = res.supporters;
   return limit ? supporters.slice(0, limit) : supporters;

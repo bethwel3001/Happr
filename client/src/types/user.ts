@@ -13,9 +13,12 @@ interface UserData {
   auth_provider: string;
   is_verified: boolean;
   bank_account: {
+    bank_id: string;
+    bank_code: string;
+    longcode?: string | null;
     bank_name: string;
-    account_name: string;
     account_number: string;
+    account_name: string;
   };
   stats: {
     total_amount_given: number;

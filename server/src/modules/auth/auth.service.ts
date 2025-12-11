@@ -108,39 +108,39 @@ export class AuthService {
   async checkUsernameAvailability(
     dto: UsernameAvailabilityDTO,
   ): Promise<ApiResponseDTO> {
-    if (!this.isUsernameAllowed(dto.username)) {
+    if (!this.isUsernameAllowed(dto.username.replace(/\s+/g, ''))) {
       throw new BadRequestException({
         success: false,
         data: [],
-        message: `"${dto.username}" is not allowed as a username`,
+        message: `"${dto.username.replace(/\s+/g, '')}" is not allowed as a username`,
       });
     }
 
     const username = await this.prisma.user.findUnique({
-      where: { username: dto.username },
+      where: { username: dto.username.replace(/\s+/g, '') },
     });
 
     if (username) {
       throw new BadRequestException({
         success: false,
         data: [],
-        message: `"${dto.username}" is already taken`,
+        message: `"${dto.username.replace(/\s+/g, '')}" is already taken`,
       });
     }
 
     return {
       success: true,
       data: [],
-      message: `${dto.username} is available`,
+      message: `${dto.username.replace(/\s+/g, '')} is available`,
     };
   }
 
   async signup(dto: SignupDTO): Promise<ApiResponseDTO> {
-    if (!this.isUsernameAllowed(dto.username)) {
+    if (!this.isUsernameAllowed(dto.username.replace(/\s+/g, ''))) {
       throw new BadRequestException({
         success: false,
         data: [],
-        message: `"${dto.username}" is not allowed as a username`,
+        message: `"${dto.username.replace(/\s+/g, '')}" is not allowed as a username`,
       });
     }
 
@@ -160,7 +160,7 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
-        username: dto.username,
+        username: dto.username.replace(/\s+/g, ''),
         password: hashedPassword,
         avatar: `https://ui-avatars.com/api/?name=${dto.username}&background=random&bold=true&size=128`,
         auth_provider: 'local',
@@ -477,7 +477,7 @@ export class AuthService {
         user = await this.prisma.user.create({
           data: {
             email,
-            username: fullName,
+            username: fullName.replace(/\s+/g, ''),
             password: '',
             avatar:
               picture ||

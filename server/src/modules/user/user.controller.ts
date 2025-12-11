@@ -21,7 +21,6 @@ import { AuthGuard } from '../../common/guards/auth.guard';
 import {
   UpdateUserDTO,
   GenerateOtpDTO,
-  UpdatePayoutDetailsDTO,
   generatePresignedUrlDTO,
 } from '../../dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
@@ -110,29 +109,5 @@ export class UserController {
     @Req() req: AuthenticatedRequest,
   ): Promise<ApiResponseDTO> {
     return this.userService.deleteUserAccount(req.user._id, id);
-  }
-
-  @Patch('payout-details')
-  @ApiBearerAuth()
-  @HttpCode(200)
-  @ApiOperation({
-    summary: 'Update payout details',
-    description:
-      'Updates the payout details of the authenticated user with OTP verification.',
-  })
-  @UseGuards(AuthGuard)
-  async updatePayoutDetails(
-    @Body() dto: UpdatePayoutDetailsDTO,
-    @Req() req: AuthenticatedRequest,
-  ): Promise<
-    ApiResponseDTO<{
-      bank_name: string;
-      account_name: string;
-      account_number: string;
-    }>
-  > {
-    console.log(dto);
-    const userId = req.user._id;
-    return this.userService.updatePayoutDetails(userId, dto);
   }
 }

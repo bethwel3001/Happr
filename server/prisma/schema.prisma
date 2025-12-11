@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -24,7 +24,6 @@ model User {
   created_at      DateTime       @default(now())
   updated_at      DateTime       @updatedAt
 
-  // Relations
   bank_account    BankAccount?
   bank_account_id String?        @unique
   refresh_tokens  RefreshToken[]
@@ -46,29 +45,31 @@ model RefreshToken {
 }
 
 model BankAccount {
-  id             String   @id @default(cuid())
+  id                     String   @id @default(cuid())
   encrypted_bank_account String
-  user_id        String?  @unique
-  user           User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
-  updated_at     DateTime @updatedAt
+  user_id                String?  @unique
+  user                   User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  updated_at             DateTime @updatedAt
 
   @@index([user_id])
 }
 
 model Donation {
-  id             String   @id @default(cuid())
-  amount         Float
-  message        String?
-  name           String?
-  email          String?
-  is_guest       Boolean  @default(false)
-  created_at     DateTime @default(now())
+  id                String   @id @default(cuid())
+  amount            Float
+  message           String?
+  created_at        DateTime @default(now())
+  is_guest          Boolean  @default(false)
 
-  // Creator (the one receiving the donation)
-  creator_id     String
-  creator        User     @relation("DonationsReceived", fields: [creator_id], references: [id], onDelete: Cascade)
+  smile_count       Int
+  smile_price       Int
+  is_anonymous      Boolean  @default(false)
+  supporter_name    String?
+  supporter_xhandle String?
 
-  // Supporter (the one giving the donation)
-  supporter_id   String?
-  supporter      User?    @relation("DonationsGiven", fields: [supporter_id], references: [id], onDelete: SetNull)
+  creator_id        String
+  creator           User     @relation("DonationsReceived", fields: [creator_id], references: [id], onDelete: Cascade)
+
+  supporter_id      String?
+  supporter         User?    @relation("DonationsGiven", fields: [supporter_id], references: [id], onDelete: SetNull)
 }

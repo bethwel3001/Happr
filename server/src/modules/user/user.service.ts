@@ -6,11 +6,7 @@ import {
   PayloadTooLargeException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import {
-  UpdatePayoutDetailsDTO,
-  UpdateUserDTO,
-  generatePresignedUrlDTO,
-} from '../../dtos/user.dto';
+import { UpdateUserDTO, generatePresignedUrlDTO } from '../../dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
 import { generateCryptographicOtp } from '../../common/utils/generate.token';
 import { redis } from '../../common/config/redis.config';
@@ -37,10 +33,14 @@ interface FixedCompleteUserDTO {
   created_at: Date;
   updated_at: Date;
   bank_account?: {
+    bank_id: string;
     bank_name: string;
     account_name: string;
     account_number: string;
+    bank_code: string;
+    longcode?: string | null;
   } | null;
+
   stats: {
     total_amount_given: number;
     total_amount_received: number;
@@ -63,10 +63,15 @@ interface DonationDetails {
   id: string;
   amount: number;
   message?: string | null;
-  name?: string | null;
-  email?: string | null;
-  is_guest: boolean;
   created_at: Date;
+  is_guest: boolean;
+
+  smile_count: number;
+  smile_price: number;
+  is_anonymous: boolean;
+  supporter_name?: string | null;
+  supporter_xhandle?: string | null;
+
   supporter?: {
     id: string;
     username: string;
@@ -119,6 +124,9 @@ export class UserService {
   }
 
   private encryptBankDetails(bankDetails: {
+    bank_id: string;
+    bank_code: string;
+    longcode?: string | null;
     bank_name: string;
     account_number: string;
     account_name: string;
@@ -136,6 +144,9 @@ export class UserService {
   }
 
   private decryptBankDetails(encryptedBankDetails: string): {
+    bank_id: string;
+    bank_code: string;
+    longcode?: string | null;
     bank_name: string;
     account_number: string;
     account_name: string;
@@ -158,81 +169,12 @@ export class UserService {
     ]).toString('utf8');
 
     return JSON.parse(decrypted) as {
+      bank_id: string;
+      bank_code: string;
+      longcode?: string | null;
       bank_name: string;
-      account_name: string;
       account_number: string;
-    };
-  }
-
-  async updatePayoutDetails(
-    userId: string,
-    dto: UpdatePayoutDetailsDTO,
-  ): Promise<
-    ApiResponseDTO<{
-      bank_name: string;
       account_name: string;
-      account_number: string;
-    }>
-  > {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user)
-      throw new NotFoundException({
-        success: false,
-        data: [],
-        message: 'User does not exist',
-      });
-    if (!user.is_verified)
-      throw new ForbiddenException({
-        success: false,
-        data: [],
-        message: 'Your account is not verified yet, check your email.',
-      });
-
-    const storedOtp = await redis.get(`otp:${userId}`);
-    if (!storedOtp || storedOtp !== dto.otp)
-      throw new BadRequestException({
-        success: false,
-        data: [],
-        message: 'Invalid or expired OTP.',
-      });
-
-    const encrypted_bank_account = this.encryptBankDetails({
-      bank_name: dto.bankName,
-      account_number: dto.accountNumber,
-      account_name: dto.accountName,
-    });
-
-    const existingBankAccount = await this.prisma.bankAccount.findUnique({
-      where: { id: userId },
-    });
-
-    if (existingBankAccount) {
-      await this.prisma.bankAccount.update({
-        where: { id: userId },
-        data: {
-          encrypted_bank_account,
-          updated_at: new Date(),
-        },
-      });
-    } else {
-      await this.prisma.bankAccount.create({
-        data: {
-          id: userId,
-          encrypted_bank_account,
-        },
-      });
-    }
-
-    await redis.del(`otp:${userId}`);
-
-    return {
-      success: true,
-      data: {
-        bank_name: dto.bankName,
-        account_name: dto.accountName,
-        account_number: dto.accountNumber,
-      },
-      message: 'Payout details updated successfully.',
     };
   }
 
@@ -298,9 +240,12 @@ export class UserService {
       });
     }
     let bank_account: {
+      bank_id: string;
+      bank_code: string;
+      longcode?: string | null;
       bank_name: string;
-      account_name: string;
       account_number: string;
+      account_name: string;
     } | null = null;
 
     if (user.bank_account?.encrypted_bank_account) {
@@ -332,10 +277,13 @@ export class UserService {
             id: true,
             amount: true,
             message: true,
-            name: true,
-            email: true,
+            supporter_name: true,
+            supporter_xhandle: true,
             is_guest: true,
             created_at: true,
+            smile_count: true,
+            smile_price: true,
+            is_anonymous: true,
             supporter: {
               select: {
                 id: true,
@@ -394,7 +342,8 @@ export class UserService {
 
     const prismaUpdateData: PrismaUserUpdate = {};
 
-    if (dto.username !== undefined) prismaUpdateData.username = dto.username;
+    if (dto.username !== undefined)
+      prismaUpdateData.username = dto.username.replace(/\s+/g, '');
     if (dto.display_name !== undefined)
       prismaUpdateData.display_name = dto.display_name;
     if (dto.bio !== undefined) prismaUpdateData.bio = dto.bio;
@@ -433,9 +382,12 @@ export class UserService {
     });
 
     let bank_account: {
+      bank_id: string;
+      bank_code: string;
+      longcode?: string | null;
       bank_name: string;
-      account_name: string;
       account_number: string;
+      account_name: string;
     } | null = null;
 
     if (updatedUser.bank_account?.encrypted_bank_account) {
