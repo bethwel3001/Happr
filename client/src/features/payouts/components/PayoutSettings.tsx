@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import BanksDropDown from "./BanksDropDown";
@@ -33,29 +33,33 @@ const PayoutSettings = () => {
   const [isOTPVerified, setIsOTPVerified] = useState(false);
   const [otp, setOtp] = useState<string>("");
 
-  const handleVerifyDetails = async () => {
-    if (!selectedBank || !accountNo) {
-      toast.error("Please select a bank and enter account number");
-      return;
-    }
-
-    try {
-      const result = await verifyAccountDetails({
-        bank_code: selectedBank.code,
-        account_number: accountNo.toString(),
-      });
-
-      if (result.success) {
-        setAccountName(result.account_name || "");
-        setIsDetailsVerified(true);
+  useEffect(() => {
+    const verifyIfValid = async () => {
+      if (selectedBank && accountNo?.toString().length === 10) {
+        try {
+          const result = await verifyAccountDetails({
+            bank_code: selectedBank.code,
+            account_number: accountNo.toString(),
+          });
+          if (result.success) {
+            setAccountName(result.account_name || "");
+            setIsDetailsVerified(true);
+          } else {
+            toast.error(result.message);
+            setIsDetailsVerified(false);
+          }
+        } catch (error) {
+          console.error(error);
+          toast.error("Verification failed. Try again.");
+          setIsDetailsVerified(false);
+        }
       } else {
-        toast.error(result.message);
+        setIsDetailsVerified(false);
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("Verification failed. Try again.");
-    }
-  };
+    };
+
+    verifyIfValid();
+  }, [accountNo, selectedBank]);
 
   const handleSendOtp = async () => {
     if (!user?.email) return;
@@ -123,13 +127,10 @@ const PayoutSettings = () => {
           </div>
         )}
 
-        {!isDetailsVerified ? (
-          <Button onClick={handleVerifyDetails}>Verify Details</Button>
-        ) : !isOTPSent ? (
+        {isDetailsVerified && !isOTPSent && (
           <Button onClick={handleSendOtp}>Send OTP</Button>
-        ) : (
-          <Button onClick={handleSubmit}>Save Changes</Button>
         )}
+        {isOTPSent && <Button onClick={handleSubmit}>Save Changes</Button>}
       </form>
 
       <h2 className="text-xl"> Security Notice </h2>
