@@ -26,6 +26,7 @@ export const verifyAccountDetails = async ({
       "/api/v1/payouts/account-name-resolver",
       { bankCode: bank_code, accountNumber: account_number },
     );
+    console.log(response);
 
     return {
       success: response.success,
