@@ -18,7 +18,6 @@ const PageSettings = () => {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  console.log(user?.avatar);
   const fallbackAvatar = `https://ui-avatars.com/api/?name=${user?.username}&bold=true&size=128.png`;
 
   const uploadFile = async (file: File): Promise<string | undefined> => {
@@ -117,7 +116,7 @@ const PageSettings = () => {
         <div className="w-full flex flex-col gap-4">
           <h3 className="text-xl">Avatar</h3>
           <AvatarUploader
-            currentUrl={user?.avatar ? `{user?.avatar}` : fallbackAvatar}
+            currentUrl={user?.avatar ? `${user.avatar}` : fallbackAvatar}
             size="large"
             onFileSelect={setAvatarFile}
           />

@@ -1,8 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsNotEmpty,
-  Length,
-  Matches,
   IsOptional,
   IsString,
   IsPhoneNumber,
@@ -13,42 +11,6 @@ import {
   IsNumber,
   IsPositive,
 } from 'class-validator';
-
-export class UpdatePayoutDetailsDTO {
-  @ApiProperty({
-    description: 'The name of the bank',
-    example: 'Guaranty Trust Bank',
-  })
-  @IsString()
-  @IsNotEmpty()
-  bankName: string;
-
-  @ApiProperty({
-    description: 'The account number of the account holder',
-    example: '0123456789',
-  })
-  @IsString()
-  @IsNotEmpty()
-  @Length(10, 10, { message: 'Account number must be 10 digits' })
-  @Matches(/^\d+$/, { message: 'Account number must contain only digits' })
-  accountNumber: string;
-
-  @ApiProperty({
-    description: 'The name of the account holder',
-    example: 'John Chukwuma',
-  })
-  @IsString()
-  @IsNotEmpty()
-  accountName: string;
-
-  @ApiProperty({
-    description: 'one time password',
-    example: '123456',
-  })
-  @IsString()
-  @IsNotEmpty()
-  otp: string;
-}
 
 export class UpdateUserDTO {
   @ApiProperty({

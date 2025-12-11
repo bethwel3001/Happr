@@ -15,6 +15,7 @@ const redis = new Redis({
   port: parseInt(REDIS_PORT),
   password: REDIS_PASSWORD,
   username: 'default',
+
   retryStrategy: (times: number) => {
     const delay = Math.min(times * 50, 5000);
     console.warn(`Retrying Redis connection in ${delay}ms`);
