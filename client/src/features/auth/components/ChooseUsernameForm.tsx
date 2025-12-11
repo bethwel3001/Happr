@@ -13,7 +13,7 @@ type FormProps = {
 const ChooseUsernameForm = ({
   username,
   setUsername,
-  onUsernameChosen
+  onUsernameChosen,
 }: FormProps) => {
   const { refetch, isFetching } = useUsernameAvailability(username);
 
@@ -40,7 +40,7 @@ const ChooseUsernameForm = ({
 
   return (
     <form
-      onSubmit={e => {
+      onSubmit={(e) => {
         e.preventDefault();
         handleSubmit();
       }}
@@ -51,7 +51,7 @@ const ChooseUsernameForm = ({
         <input
           type="text"
           value={username}
-          onChange={e => setUsername(e.target.value)}
+          onChange={(e) => setUsername(e.target.value)}
           placeholder="username"
           disabled={isFetching}
           className="h-full bg-transparent text-input-foreground px-[.1rem]"

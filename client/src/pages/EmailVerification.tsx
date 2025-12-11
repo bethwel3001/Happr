@@ -4,7 +4,7 @@ import {
   InvalidEmailVerification,
   LoadingEmailVerification,
   SuccessEmailVerification,
-  useEmailVerification
+  useEmailVerification,
 } from "@/features/auth";
 
 const EmailVerification = () => {
@@ -14,7 +14,7 @@ const EmailVerification = () => {
   const verificationToken = searchParams.get("token") ?? "";
 
   const { data, isLoading, isError } = useEmailVerification({
-    verificationToken
+    verificationToken,
   });
 
   const isInvalid = !verificationToken || isError;
@@ -25,7 +25,7 @@ const EmailVerification = () => {
       setCountdown(5);
 
       const interval = setInterval(() => {
-        setCountdown(prev => (prev > 0 ? prev - 1 : 0));
+        setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
       }, 1000);
 
       const timeout = setTimeout(() => {

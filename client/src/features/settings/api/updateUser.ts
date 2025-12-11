@@ -1,63 +1,78 @@
 import { axios } from "@/lib";
-import type { ApiResponse } from "../types";
-import type { Bank } from "@/types";
 
-interface UserUpdate {
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
+export interface UserUpdate {
   id: string;
   email?: string;
-  password?: string;
   username?: string;
   bio?: string;
-  avatar?: File | null;
-  cover_photo?: File | null;
   display_name?: string;
   website_link?: string;
   phone_number?: string;
   is_onboarded?: boolean;
-  bank_account?: Bank;
+  avatar?: string;
+  cover_photo?: string;
 }
 
-const appendIfPresent = <T extends Record<string, unknown>>(
-  form: FormData,
-  key: keyof T,
-  value: T[keyof T]
-) => {
-  if (value !== undefined && value !== null && value !== "") {
-    if (typeof value === "object" && !(value instanceof File)) {
-      form.append(String(key), JSON.stringify(value));
-    } else {
-      form.append(String(key), value as Blob | string);
-    }
-  }
-};
+export interface UserData {
+  id: string;
+  email: string;
+  username: string;
+  bio?: string;
+  display_name?: string;
+  website_link?: string;
+  phone_number?: string;
+  is_onboarded: boolean;
+  avatar?: string;
+  cover_photo?: string;
+}
 
-const updateUser = async (data: UserUpdate): Promise<ApiResponse> => {
+export interface PresignedUrlRequest {
+  file_size: number;
+  content_type: string;
+}
+
+export interface PresignedUrlData {
+  presigned_url: string;
+  objectKey: string;
+  expiresIn: number;
+}
+
+const updateUser = async (data: UserUpdate): Promise<ApiResponse<UserData>> => {
   try {
-    const form = new FormData();
+    const { id, ...payload } = data;
 
-    (Object.keys(data) as (keyof UserUpdate)[]).forEach(key => {
-      if (key === "id") return;
-      appendIfPresent(form, key, data[key]);
-    });
-
-    const res = await axios.patch<ApiResponse>(
-      `/api/v1/user/${data.id}`,
-      form,
-      {
-        headers: { "Content-Type": "multipart/form-data" }
-      }
+    const res = await axios.patch<ApiResponse<UserData>>(
+      `/api/v1/user/${id}`,
+      payload,
     );
 
-    console.log(res);
-    return {
-      success: res.success,
-      message: res.message,
-      data: res.data
-    };
-  } catch (err) {
+    return res;
+  } catch (err: unknown) {
     if (err instanceof Error) throw err;
     throw new Error("Something went wrong");
   }
 };
 
-export default updateUser;
+const getPresignedUrl = async (
+  data: PresignedUrlRequest,
+): Promise<ApiResponse<PresignedUrlData>> => {
+  try {
+    const res = await axios.post<ApiResponse<PresignedUrlData>>(
+      "/api/v1/user/presigned-url",
+      data,
+    );
+
+    return res;
+  } catch (err: unknown) {
+    if (err instanceof Error) throw err;
+    throw new Error("Something went wrong");
+  }
+};
+
+export { updateUser, getPresignedUrl };

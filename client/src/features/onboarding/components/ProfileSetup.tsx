@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { useUpdateUser } from "@/features/settings";
 import { AvatarUploader } from "@/features/settings";
 import Input from "@/components/ui/Input";
@@ -14,7 +14,7 @@ type PageProps = {
 const ProfileSetup = ({
   submitCount,
   onSubmitComplete,
-  onLoadingChange
+  onLoadingChange,
 }: PageProps) => {
   const { user } = useAuth();
   const { updatePublicInfo } = useUpdateUser();
@@ -39,7 +39,7 @@ const ProfileSetup = ({
         avatar: avatarFile,
         display_name: name,
         bio: about,
-        website_link: userLink
+        website_link: userLink,
       });
 
       // Only on success
@@ -69,7 +69,7 @@ const ProfileSetup = ({
         <AvatarUploader
           currentUrl={user?.avatar}
           size="large"
-          onFileSelect={file => setAvatarFile(file)}
+          onFileSelect={(file) => setAvatarFile(file)}
         />
       </div>
 
@@ -78,7 +78,7 @@ const ProfileSetup = ({
         <Input
           id="name-input"
           value={name}
-          onChange={e => setName(e.target.value)}
+          onChange={(e) => setName(e.target.value)}
         />
       </div>
 
@@ -88,7 +88,7 @@ const ProfileSetup = ({
           id="about-input"
           autoComplete="off"
           value={about}
-          onChange={e => setAbout(e.target.value)}
+          onChange={(e) => setAbout(e.target.value)}
           className="w-full h-[10rem] p-3 text-sm bg-input border border-input rounded-lg"
         />
       </div>
@@ -99,7 +99,7 @@ const ProfileSetup = ({
           id="link-input"
           type="url"
           value={userLink}
-          onChange={e => setUserLink(e.target.value)}
+          onChange={(e) => setUserLink(e.target.value)}
         />
       </div>
     </form>

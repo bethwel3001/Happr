@@ -3,15 +3,23 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  PayloadTooLargeException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { UpdatePayoutDetailsDTO, UpdateUserDTO } from '../../dtos/user.dto';
+import {
+  UpdatePayoutDetailsDTO,
+  UpdateUserDTO,
+  generatePresignedUrlDTO,
+} from '../../dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
 import { generateCryptographicOtp } from '../../common/utils/generate.token';
 import { redis } from '../../common/config/redis.config';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import crypto from 'crypto';
+import s3 from '../../common/config/s3.config';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 interface FixedCompleteUserDTO {
   id: string;
@@ -33,6 +41,14 @@ interface FixedCompleteUserDTO {
     account_name: string;
     account_number: string;
   } | null;
+  stats: {
+    total_amount_given: number;
+    total_amount_received: number;
+    total_donations_given: number;
+    total_donations_received: number;
+    total_supporters: number;
+  };
+  recent_donations: DonationDetails[];
 }
 
 interface UserStats {
@@ -64,9 +80,32 @@ interface UserDetailsResponse extends FixedCompleteUserDTO {
   recent_donations: DonationDetails[];
 }
 
+type PrismaUserUpdate = Partial<{
+  username: string;
+  display_name: string;
+  bio: string;
+  phone_number: string;
+  website_link: string;
+  is_onboarded: boolean;
+  email: string;
+  avatar: string;
+  cover_photo: string;
+}>;
+
 @Injectable()
 export class UserService {
   private readonly encryptionKey: Buffer;
+  private readonly MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+  private readonly URL_EXPIRATION_SECONDS = 5 * 60;
+  private readonly ALLOWED_IMAGE_TYPES = [
+    'image/png',
+    'image/jpeg',
+    'image/jpg',
+    'image/webp',
+    'image/gif',
+    'image/avif',
+    'image/svg+xml',
+  ];
 
   constructor(
     private prisma: PrismaService,
@@ -335,72 +374,147 @@ export class UserService {
     return apiResponse;
   }
 
- async updateUserInfo(
-  id: string,
-  dto: UpdateUserDTO,
-): Promise<ApiResponseDTO<FixedCompleteUserDTO>> {
-  const user = await this.prisma.user.findUnique({ where: { id } });
-  if (!user)
-    throw new NotFoundException({
-      success: false,
-      data: [],
-      message: 'User does not exist',
+  async updateUserInfo(
+    id: string,
+    dto: UpdateUserDTO,
+  ): Promise<ApiResponseDTO<FixedCompleteUserDTO>> {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user)
+      throw new NotFoundException({
+        success: false,
+        data: [],
+        message: 'User does not exist',
+      });
+    if (!user.is_verified)
+      throw new ForbiddenException({
+        success: false,
+        data: [],
+        message: 'Your account is not verified yet, check your email.',
+      });
+
+    const prismaUpdateData: PrismaUserUpdate = {};
+
+    if (dto.username !== undefined) prismaUpdateData.username = dto.username;
+    if (dto.display_name !== undefined)
+      prismaUpdateData.display_name = dto.display_name;
+    if (dto.bio !== undefined) prismaUpdateData.bio = dto.bio;
+    if (dto.phone_number !== undefined)
+      prismaUpdateData.phone_number = dto.phone_number;
+    if (dto.website_link !== undefined)
+      prismaUpdateData.website_link = dto.website_link;
+    if (dto.is_onboarded !== undefined)
+      prismaUpdateData.is_onboarded = dto.is_onboarded;
+    if (dto.email !== undefined) prismaUpdateData.email = dto.email;
+    if (dto.avatar !== undefined) prismaUpdateData.avatar = dto.avatar;
+    if (dto.cover_photo !== undefined)
+      prismaUpdateData.cover_photo = dto.cover_photo;
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: prismaUpdateData,
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        bio: true,
+        display_name: true,
+        website_link: true,
+        phone_number: true,
+        is_onboarded: true,
+        auth_provider: true,
+        is_verified: true,
+        avatar: true,
+        cover_photo: true,
+        created_at: true,
+        updated_at: true,
+        bank_account: { select: { encrypted_bank_account: true } },
+      },
     });
-  if (!user.is_verified)
-    throw new ForbiddenException({
-      success: false,
-      data: [],
-      message: 'Your account is not verified yet, check your email.',
-    });
 
-  const prismaUpdateData: any = {};
+    let bank_account: {
+      bank_name: string;
+      account_name: string;
+      account_number: string;
+    } | null = null;
 
-  if (dto.username !== undefined) prismaUpdateData.username = dto.username;
-  if (dto.display_name !== undefined) prismaUpdateData.display_name = dto.display_name;
-  if (dto.bio !== undefined) prismaUpdateData.bio = dto.bio;
-  if (dto.phone_number !== undefined) prismaUpdateData.phone_number = dto.phone_number;
-  if (dto.website_link !== undefined) prismaUpdateData.website_link = dto.website_link;
-  if (dto.is_onboarded !== undefined) prismaUpdateData.is_onboarded = dto.is_onboarded;
-  if (dto.email !== undefined) prismaUpdateData.email = dto.email;
+    if (updatedUser.bank_account?.encrypted_bank_account) {
+      bank_account = this.decryptBankDetails(
+        updatedUser.bank_account.encrypted_bank_account,
+      );
+    }
 
-  const updatedUser = await this.prisma.user.update({
-    where: { id },
-    data: prismaUpdateData,
-    select: {
-      id: true,
-      email: true,
-      username: true,
-      bio: true,
-      display_name: true,
-      website_link: true,
-      phone_number: true,
-      is_onboarded: true,
-      auth_provider: true,
-      is_verified: true,
-      created_at: true,
-      updated_at: true,
-      bank_account: { select: { encrypted_bank_account: true } },
-    },
-  });
-
-  let bank_account: {
-    bank_name: string;
-    account_name: string;
-    account_number: string;
-  } | null = null;
-
-  if (updatedUser.bank_account?.encrypted_bank_account) {
-    bank_account = this.decryptBankDetails(
-      updatedUser.bank_account.encrypted_bank_account,
-    );
+    return {
+      success: true,
+      data: {
+        ...updatedUser,
+        bank_account,
+        stats: {
+          total_amount_given: 0,
+          total_amount_received: 0,
+          total_donations_given: 0,
+          total_donations_received: 0,
+          total_supporters: 0,
+        },
+        recent_donations: [],
+      },
+      message: 'User profile updated successfully.',
+    };
   }
 
-  return {
-    success: true,
-    data: { ...updatedUser, bank_account },
-    message: 'User profile updated successfully.',
-  };
-}
+  async generatePresignedUrl(
+    dto: generatePresignedUrlDTO,
+  ): Promise<ApiResponseDTO> {
+    const { file_size, content_type } = dto;
+
+    if (!this.ALLOWED_IMAGE_TYPES.includes(content_type)) {
+      throw new BadRequestException({
+        success: false,
+        message: 'Invalid file type. Only image types are allowed.',
+        data: null,
+      });
+    }
+
+    if (file_size > this.MAX_FILE_SIZE_BYTES) {
+      throw new PayloadTooLargeException({
+        success: false,
+        message: `File size exceeds ${this.MAX_FILE_SIZE_BYTES / (1024 * 1024)}MB limit`,
+        data: null,
+      });
+    }
+
+    const objectKey = `uploads/${crypto.randomUUID()}`;
+
+    const command = new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME!,
+      Key: objectKey,
+      ContentType: content_type,
+      ContentLength: file_size,
+    });
+
+    try {
+      const presigned_url = await getSignedUrl(s3, command, {
+        expiresIn: this.URL_EXPIRATION_SECONDS,
+      });
+
+      return {
+        success: true,
+        message: 'Presigned URL created successfully',
+        data: {
+          presigned_url,
+          objectKey,
+          expiresIn: this.URL_EXPIRATION_SECONDS,
+        },
+      };
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : 'Unknown error occurred';
+      return {
+        success: false,
+        message: `Failed to generate presigned URL: ${message}`,
+        data: null,
+      };
+    }
+  }
 
   async deleteUserAccount(
     authUserId: string,

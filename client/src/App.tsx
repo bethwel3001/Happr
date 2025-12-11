@@ -10,10 +10,10 @@ import SupportPage from "@/pages/SupportPage";
 import { ProtectedRoute, PublicRoute } from "@/components/guards";
 
 const AuthLayout = lazy(() =>
-  import("@/features/auth").then(module => ({ default: module.Layout }))
+  import("@/features/auth").then((module) => ({ default: module.Layout })),
 );
 const UserPagesLayout = lazy(
-  () => import("@/components/layouts/UserPagesLayout")
+  () => import("@/components/layouts/UserPagesLayout"),
 );
 
 // Auth Pages
@@ -22,7 +22,10 @@ const authPages = {
   signin: lazy(() => import("@/pages/SignIn")),
   "reset-assword": lazy(() => import("@/pages/ResetPassword")),
   "email-verification": lazy(() => import("@/pages/EmailVerification")),
-  "complete-setup": lazy(() => import("@/pages/Onboarding"))
+  "complete-setup": lazy(() => import("@/pages/Onboarding")),
+  "complete-google-auth-setup": lazy(
+    () => import("@/pages/GoogleAuthCallback"),
+  ),
 };
 
 // User Pages
@@ -30,7 +33,7 @@ const userPages = {
   dashboard: lazy(() => import("@/pages/Dashboard")),
   supporters: lazy(() => import("@/pages/Supporters")),
   payout: lazy(() => import("@/pages/Payout")),
-  settings: lazy(() => import("@/pages/SettingsPage"))
+  settings: lazy(() => import("@/pages/SettingsPage")),
 };
 
 const App = () => {
@@ -46,15 +49,9 @@ const App = () => {
                 key={path}
                 path={`/${path}`}
                 element={
-                  path === "complete-setup" ? (
-                    <ProtectedRoute>
-                      <Component />
-                    </ProtectedRoute>
-                  ) : (
-                    <PublicRoute>
-                      <Component />
-                    </PublicRoute>
-                  )
+                  <PublicRoute>
+                    <Component />
+                  </PublicRoute>
                 }
               />
             ))}
