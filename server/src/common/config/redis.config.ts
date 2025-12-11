@@ -2,10 +2,19 @@ import Redis from 'ioredis';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const REDIS_URL = process.env.REDIS_URL as string;
-if (!REDIS_URL) throw new Error('Redis Connection Url is missing');
+const REDIS_HOST = process.env.REDIS_HOST;
+const REDIS_PORT = process.env.REDIS_PORT;
+const REDIS_PASSWORD = process.env.REDIS_PASSWORD || '';
+console.log(REDIS_PASSWORD, REDIS_HOST, REDIS_PORT);
+if (!REDIS_HOST || !REDIS_PORT) {
+  throw new Error('Redis configuration is missing');
+}
 
-const redis = new Redis(REDIS_URL, {
+const redis = new Redis({
+  host: REDIS_HOST,
+  port: parseInt(REDIS_PORT),
+  password: REDIS_PASSWORD,
+  username: 'default',
   retryStrategy: (times: number) => {
     const delay = Math.min(times * 50, 5000);
     console.warn(`Retrying Redis connection in ${delay}ms`);

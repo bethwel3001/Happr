@@ -10,7 +10,12 @@ import { BullModule } from '@nestjs/bullmq';
     JwtModule.register({ global: true }),
     BullModule.registerQueue({
       name: 'email-queue',
-      connection: { url: process.env.REDIS_URL! },
+      connection: {
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT),
+        password: process.env.REDIS_PASSWORD,
+        username: 'default',
+      },
       defaultJobOptions: {
         attempts: 5,
         backoff: { type: 'exponential', delay: 5000 },

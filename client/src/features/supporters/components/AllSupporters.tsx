@@ -12,11 +12,11 @@ const AllSupporters = () => {
   const {
     data: supporters = [],
     isLoading,
-    isError
+    isError,
   } = useQuery<Supporter[]>({
     queryFn: () => getSupporters(creatorId),
     queryKey: ["all", "supporters", creatorId],
-    enabled: !!creatorId
+    enabled: !!creatorId,
   });
 
   return (

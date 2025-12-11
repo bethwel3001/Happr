@@ -5,7 +5,7 @@ const DisplaySupporters = ({ supporters }: { supporters: Supporter[] }) => {
   return (
     <table aria-label="supporters table" className="w-full mb-0">
       <tbody>
-        {supporters.map(supporter => {
+        {supporters.map((supporter) => {
           const supporterName = supporter.info.name;
           return (
             <tr
