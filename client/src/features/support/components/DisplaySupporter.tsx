@@ -1,14 +1,14 @@
 import type { Supporter } from "@/features/supporters";
 
 const DisplaySupporter = ({ supporter }: { supporter: Supporter }) => {
-  const supporterName = supporter.info.name;
+  const supporterName = supporter.supporter_name;
 
   return (
     <div
       key={supporter.id}
       className="w-full flex items-center gap-1 bg-accent p-3 rounded-sm"
     >
-      {supporter.info.xHandle ? (
+      {supporter.supporter_xhandle ? (
         <a
           href={`https://x.com/${supporterName}`}
           target="_blank"
@@ -22,7 +22,7 @@ const DisplaySupporter = ({ supporter }: { supporter: Supporter }) => {
       )}
       <span>
         {" "}
-        sent <strong>x{supporter.smileCount}</strong> smiles 😊
+        sent <strong>x{supporter.smile_count}</strong> smiles 😊
       </span>
     </div>
   );

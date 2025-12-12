@@ -35,6 +35,7 @@
     "@nestjs/throttler": "^6.4.0",
     "@prisma/client": "6.19.0",
     "@prisma/extension-accelerate": "^2.0.2",
+    "@swervpaydev/sdk": "^0.0.31",
     "argon2": "^0.44.0",
     "axios": "^1.12.2",
     "bullmq": "^5.61.0",

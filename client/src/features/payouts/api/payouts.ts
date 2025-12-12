@@ -9,7 +9,7 @@ interface VerifyAccountResponse {
   success: boolean;
   message: string;
   data: {
-    account_name: string;
+    accountName: string;
   };
 }
 
@@ -31,7 +31,7 @@ export const verifyAccountDetails = async ({
     return {
       success: response.success,
       message: response.message,
-      account_name: response.data.account_name,
+      account_name: response.data.accountName,
     };
   } catch (error: unknown) {
     if (error instanceof Error) {
