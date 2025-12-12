@@ -441,6 +441,7 @@ export class UserService {
       Bucket: process.env.R2_BUCKET_ID!,
       Key: objectKey,
       ContentType: content_type,
+      ContentLength: file_size,
     });
 
     try {

@@ -1,24 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
-import ErrorBox from "@/components/ui/ErrorBox";
-import SupportersSkeletonLoader from "./SupportersSkeletonLoader";
 import DisplaySupporters from "./DisplaySupporters";
 import NoSupporters from "./NoSupporters";
-import getSupporters from "../utils/getSupporters";
-import type { Supporter } from "../types";
+import { useAuth } from "@/hooks/useAuth";
 
 const AllSupporters = () => {
-  const creatorId = "creator_001";
-
-  const {
-    data: supporters = [],
-    isLoading,
-    isError,
-  } = useQuery<Supporter[]>({
-    queryFn: () => getSupporters(creatorId),
-    queryKey: ["all", "supporters", creatorId],
-    enabled: !!creatorId,
-  });
-
+  const { user } = useAuth();
+  if (!user) return null;
   return (
     <section
       aria-labelledby="supporters section"
@@ -27,17 +13,10 @@ const AllSupporters = () => {
       <h2 className="text-2xl">Your Supporters</h2>
 
       <div className="w-full block p-2 border border-border rounded-xl hide-scrollbar overflow-x-auto overflow-y-visible">
-        {isLoading ? (
-          <SupportersSkeletonLoader />
-        ) : isError ? (
-          <ErrorBox
-            title="Error loading supporters"
-            message="Soemthing went wrong. Please try again"
-          />
-        ) : supporters.length === 0 ? (
+        {user?.recent_donations && user?.recent_donations.length === 0 ? (
           <NoSupporters />
         ) : (
-          <DisplaySupporters supporters={supporters} />
+          <DisplaySupporters supporters={user.recent_donations} />
         )}
       </div>
     </section>

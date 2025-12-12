@@ -1,30 +1,14 @@
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { ChartColumn } from "lucide-react";
-import ErrorBox from "@/components/ui/ErrorBox";
-
-// imported from other features
 import {
-  SupportersSkeletonLoader,
   DisplaySupporters,
   NoSupporters,
 } from "@/features/supporters/components";
-import { getSupporters } from "@/features/supporters";
-import type { Supporter } from "@/features/supporters";
+import { useAuth } from "@/hooks/useAuth";
 
 const RecentSupporters = () => {
-  const creatorId = "creator_001";
-
-  const {
-    data: supporters = [],
-    isLoading,
-    isError,
-  } = useQuery<Supporter[]>({
-    queryFn: () => getSupporters(creatorId, 5),
-    queryKey: ["recent", "supporters", creatorId],
-    enabled: !!creatorId,
-  });
-
+  const { user } = useAuth();
+  if (!user) return null;
   return (
     <section className="relative w-full flex flex-col gap-4 p-4 border border-border rounded-xl">
       <div className="w-full flex items-center justify-between gap-3 mb-4">
@@ -41,17 +25,10 @@ const RecentSupporters = () => {
         aria-label="recent-supporters"
         className="w-full block hide-scrollbar overflow-x-auto overflow-y-visible"
       >
-        {isLoading ? (
-          <SupportersSkeletonLoader />
-        ) : isError ? (
-          <ErrorBox
-            title="Error loading supporters"
-            message="Soemthing went wrong. Please try again"
-          />
-        ) : supporters.length === 0 ? (
+        {user?.recent_donations && user.recent_donations.length === 0 ? (
           <NoSupporters />
         ) : (
-          <DisplaySupporters supporters={supporters} />
+          <DisplaySupporters supporters={user.recent_donations} />
         )}
       </div>
     </section>

@@ -24,7 +24,7 @@ import {
   UpdatePayoutDetailsDTO,
 } from '../../dtos/payouts.dto';
 import { PaystackBank } from './payouts.service';
-
+import { redis } from '../../common/config/redis.config';
 export interface PaystackBanksResponse {
   status: boolean;
   message: string;
@@ -77,14 +77,32 @@ export class PayoutsController {
     description: 'Banks list retrieved successfully.',
   })
   async getAllNigerianBanksList(): Promise<ApiResponseDTO<PaystackBank[]>> {
+    const cacheKey = 'banks:nigeria';
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return {
+        success: true,
+        message: 'Banks list fetched (cache)',
+        data: JSON.parse(cached) as PaystackBank[],
+      };
+    }
+
     const response: AxiosResponse<PaystackBanksResponse> = await axios.get(
       'https://api.paystack.co/bank',
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+        },
+      },
     );
+
+    const banks = response.data.data;
+    await redis.set(cacheKey, JSON.stringify(banks), 'EX', 86400);
 
     return {
       success: true,
-      message: response?.data.message,
-      data: response?.data.data,
+      message: response.data.message,
+      data: banks,
     };
   }
 

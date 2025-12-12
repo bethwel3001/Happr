@@ -6,14 +6,14 @@ const DisplaySupporters = ({ supporters }: { supporters: Supporter[] }) => {
     <table aria-label="supporters table" className="w-full mb-0">
       <tbody>
         {supporters.map((supporter) => {
-          const supporterName = supporter.info.name;
+          const supporterName = supporter.supporter_name;
           return (
             <tr
               key={supporter.id}
               className="[&_td]:min-w-32 [&_td]:max-w-[14rem] [&_td]:px-5 [&_td]:py-4 [&_td]:border-b relative"
             >
               <td>
-                {supporter.info.xHandle ? (
+                {supporter.supporter_xhandle ? (
                   <a
                     href={`https://x.com/${supporterName}`}
                     target="_blank"
@@ -26,7 +26,7 @@ const DisplaySupporters = ({ supporters }: { supporters: Supporter[] }) => {
                   <span className="min-w-32 font-bold">{supporterName}</span>
                 )}
               </td>
-              <td>x{supporter.smileCount} 😊</td>
+              <td>x{supporter.smile_count} 😊</td>
               <td>{formatNaira(supporter.amount)}</td>
               <td className="relative group">
                 <div className="truncate">{supporter.message}</div>
@@ -39,7 +39,7 @@ const DisplaySupporters = ({ supporters }: { supporters: Supporter[] }) => {
                 </div>
               </td>
               <td className="whitespace-nowrap overflow-hidden truncate">
-                {timeAgo(supporter.createdAt)}
+                {timeAgo(supporter.created_at)}
               </td>
             </tr>
           );

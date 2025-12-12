@@ -194,6 +194,17 @@ export class PayoutsService {
     accountNumber: string,
     bankCode: string,
   ): Promise<ApiResponseDTO<{ accountName: string }>> {
+    const cacheKey = `bank:${bankCode}:${accountNumber}`;
+
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return {
+        success: true,
+        message: 'Account name resolved (cache)',
+        data: { accountName: cached },
+      };
+    }
+
     try {
       const response: AxiosResponse<PaystackResolveResponse> = await axios.get(
         'https://api.paystack.co/bank/resolve',
@@ -205,16 +216,25 @@ export class PayoutsService {
         },
       );
 
+      const accountName = response.data.data.account_name;
+
+      await redis.set(cacheKey, accountName, 'EX', 86400);
+
       return {
         success: true,
         message: 'Account name resolved',
-        data: { accountName: response.data.data.account_name },
+        data: { accountName },
       };
     } catch (error) {
       const err = error as AxiosError<PaystackResolveResponse>;
       const message =
         err.response?.data?.message ?? 'Account resolution failed';
-      return { success: false, message, data: { accountName: '' } };
+
+      return {
+        success: false,
+        message,
+        data: { accountName: '' },
+      };
     }
   }
 }

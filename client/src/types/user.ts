@@ -27,9 +27,30 @@ interface UserData {
     total_donations_received: number;
     total_supporters: number;
   };
-  recent_donations: [];
+  recent_donations: DonationDetails[];
   created_at: string | Date;
   updated_at: string | Date;
+}
+
+interface DonationDetails {
+  id: string;
+  amount: number;
+  message?: string | null;
+  created_at: Date;
+  is_guest: boolean;
+
+  smile_count: number;
+  smile_price: number;
+  is_anonymous: boolean;
+  supporter_name?: string | null;
+  supporter_xhandle?: string | null;
+
+  supporter?: {
+    id: string;
+    username: string;
+    avatar?: string | null;
+    cover_photo?: string | null;
+  } | null;
 }
 
 type User = UserData;
