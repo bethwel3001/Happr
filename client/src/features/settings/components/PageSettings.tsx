@@ -4,8 +4,8 @@ import Button from "@/components/ui/Button";
 import CoverUploader from "./CoverUploader";
 import AvatarUploader from "./AvatarUploader";
 import { useAuth } from "@/hooks/useAuth";
-import { updateUser, getPresignedUrl } from "../api/updateUser";
-import type { PresignedUrlRequest, PresignedUrlData } from "../api/updateUser";
+import { updateUser, getSignature } from "../api/updateUser";
+import type { SignatureRequest, SignatureData } from "../api/updateUser";
 import { toast } from "sonner";
 
 const PageSettings = () => {
@@ -23,27 +23,42 @@ const PageSettings = () => {
   const uploadFile = async (file: File): Promise<string | undefined> => {
     if (!file) return undefined;
 
-    const req: PresignedUrlRequest = {
+    const req: SignatureRequest = {
       file_size: file.size,
       content_type: file.type,
     };
 
     try {
-      const response = await getPresignedUrl(req);
+      const response = await getSignature(req);
 
       if (!response.success) {
-        throw new Error(response.message || "Failed to get presigned URL");
+        throw new Error(response.message || "Failed to get signature");
       }
 
-      const presignedData = response.data as PresignedUrlData;
+      const signatureData = response.data as SignatureData;
 
-      await fetch(presignedData.presigned_url, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type },
-      });
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("signature", signatureData.signature);
+      formData.append("timestamp", signatureData.timestamp.toString());
+      formData.append("folder", signatureData.folder);
+      formData.append("public_id", signatureData.public_id);
+      formData.append("api_key", signatureData.api_key);
 
-      return presignedData.objectKey;
+      const uploadResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${signatureData.cloud_name}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload to Cloudinary");
+      }
+
+      const uploadResult = await uploadResponse.json();
+      return uploadResult.secure_url;
     } catch (err) {
       console.error("File upload failed:", err);
       const errorMessage =
@@ -62,15 +77,15 @@ const PageSettings = () => {
     setIsSaving(true);
 
     try {
-      let avatarKey: string | undefined;
-      let coverKey: string | undefined;
+      let avatarUrl: string | undefined;
+      let coverUrl: string | undefined;
 
       if (avatarFile) {
-        avatarKey = await uploadFile(avatarFile);
+        avatarUrl = await uploadFile(avatarFile);
       }
 
       if (coverFile) {
-        coverKey = await uploadFile(coverFile);
+        coverUrl = await uploadFile(coverFile);
       }
 
       const response = await updateUser({
@@ -78,8 +93,8 @@ const PageSettings = () => {
         display_name: displayName,
         bio: about,
         website_link: userLink,
-        ...(avatarKey && { avatar: avatarKey }),
-        ...(coverKey && { cover_photo: coverKey }),
+        ...(avatarUrl && { avatar: avatarUrl }),
+        ...(coverUrl && { cover_photo: coverUrl }),
       });
 
       if (response.success && response.data) {

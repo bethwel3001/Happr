@@ -28,6 +28,9 @@ export interface UserData {
   auth_provider: string;
   is_verified: boolean;
   bank_account: {
+    bank_id: string;
+    bank_code: string;
+    longcode?: string | null;
     bank_name: string;
     account_name: string;
     account_number: string;
@@ -44,15 +47,18 @@ export interface UserData {
   updated_at: string | Date;
 }
 
-export interface PresignedUrlRequest {
+export interface SignatureRequest {
   file_size: number;
   content_type: string;
 }
 
-export interface PresignedUrlData {
-  presigned_url: string;
-  objectKey: string;
-  expiresIn: number;
+export interface SignatureData {
+  signature: string;
+  timestamp: number;
+  folder: string;
+  public_id: string;
+  cloud_name: string;
+  api_key: string;
 }
 
 interface SimpleApiResponse<T> {
@@ -82,12 +88,12 @@ const updateUser = async (
   }
 };
 
-const getPresignedUrl = async (
-  data: PresignedUrlRequest,
-): Promise<SimpleApiResponse<PresignedUrlData>> => {
+const getSignature = async (
+  data: SignatureRequest,
+): Promise<SimpleApiResponse<SignatureData>> => {
   try {
-    const response = await axios.post<SimpleApiResponse<PresignedUrlData>>(
-      "/api/v1/user/presigned-url",
+    const response = await axios.post<SimpleApiResponse<SignatureData>>(
+      "/api/v1/user/signature",
       data,
     );
 
@@ -96,9 +102,10 @@ const getPresignedUrl = async (
     const errorMessage =
       err instanceof Error
         ? err.message
-        : "Something went wrong while getting presigned URL";
+        : "Something went wrong while getting signature";
     throw new Error(errorMessage);
   }
 };
 
-export { updateUser, getPresignedUrl };
+export { updateUser, getSignature };
+
