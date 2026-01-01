@@ -21,7 +21,7 @@ import { AuthGuard } from '../../common/guards/auth.guard';
 import {
   UpdateUserDTO,
   GenerateOtpDTO,
-  generatePresignedUrlDTO,
+  generateSignatureDTO,
 } from '../../dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
 import { CompleteUserDatabaseDTO } from '../../dtos/user.dto';
@@ -30,7 +30,7 @@ import type { AuthenticatedRequest } from '../../common/guards/auth.guard';
 @ApiTags('User Management')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Get('me')
   @ApiBearerAuth()
@@ -65,20 +65,20 @@ export class UserController {
     return this.userService.generateOtp(dto.email);
   }
 
-  @Post('presigned-url')
+  @Post('signature')
   @HttpCode(200)
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @ApiOperation({
     summary:
-      'Presigned Url for uploading user avatar photo and cover photo securly!',
+      'Generate signature for uploading user avatar photo and cover photo securely!',
     description:
-      'Presigned Url for uploading user avatar photo and cover photo securly!',
+      'Generate signature for uploading user avatar photo and cover photo securely!',
   })
-  async generatePresignedUrl(
-    @Body() dto: generatePresignedUrlDTO,
+  async generateSignature(
+    @Body() dto: generateSignatureDTO,
   ): Promise<ApiResponseDTO<any>> {
-    return this.userService.generatePresignedUrl(dto);
+    return this.userService.generateSignature(dto);
   }
 
   @Patch(':id')
