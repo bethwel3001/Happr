@@ -352,8 +352,7 @@ export class UserService {
     if (dto.is_onboarded !== undefined)
       prismaUpdateData.is_onboarded = dto.is_onboarded;
     if (dto.email !== undefined) prismaUpdateData.email = dto.email;
-    if (dto.avatar !== undefined)
-      prismaUpdateData.avatar = dto.avatar;
+    if (dto.avatar !== undefined) prismaUpdateData.avatar = dto.avatar;
     if (dto.cover_photo !== undefined)
       prismaUpdateData.cover_photo = dto.cover_photo;
 
@@ -412,9 +411,7 @@ export class UserService {
     };
   }
 
-  async generateSignature(
-    dto: generateSignatureDTO,
-  ): Promise<ApiResponseDTO> {
+  generateSignature(dto: generateSignatureDTO): ApiResponseDTO {
     const { file_size, content_type } = dto;
 
     if (!this.ALLOWED_IMAGE_TYPES.includes(content_type)) {
