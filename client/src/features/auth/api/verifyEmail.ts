@@ -5,7 +5,7 @@ const verifyEmail = async (
   verificationToken: string
 ): Promise<EmailVerificationResponse> => {
   try {
-    const response = await axios.get(
+    const response = await axios.get<EmailVerificationResponse>(
       `/api/v1/auth/verify-email?token=${verificationToken}`
     );
 

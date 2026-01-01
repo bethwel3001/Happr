@@ -11,8 +11,8 @@ interface PrivateInfoUpdate {
 }
 
 interface PublicInfoUpdate {
-  avatar?: File | null;
-  cover_photo?: File | null;
+  avatar?: string;
+  cover_photo?: string;
   display_name?: string;
   bio?: string;
   website_link?: string;
