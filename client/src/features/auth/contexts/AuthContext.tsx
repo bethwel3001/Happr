@@ -24,6 +24,7 @@ const excludedPaths = [
   "/reset-password",
   "/email-verification",
   "/complete-google-auth-setup",
+  "/complete-x-auth-setup",
 ];
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -51,8 +52,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       excludedPaths.some((path) => location.pathname.startsWith(path));
 
     if (userQuery.isSuccess && userQuery.data) {
-      setUser(userQuery.data.data);
-      setIsUserAuthenticated(true);
+      if (userQuery.data.success && userQuery.data.data) {
+        setUser(userQuery.data.data);
+        setIsUserAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsUserAuthenticated(false);
+      }
     }
 
     if (userQuery.isError && !isExcluded) {
