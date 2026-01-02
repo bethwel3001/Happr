@@ -511,7 +511,7 @@ export class AuthService {
     try {
       const { url, codeVerifier, state } = this.xClient.generateOAuth2AuthLink(
         this.X_REDIRECT_URI,
-        { scope: ['tweet.read', 'users.read', 'offline.access'] },
+        { scope: ['tweet.read', 'users.read', 'offline.access', 'email'] },
       );
 
       await redis.set(`x_state:${state}`, codeVerifier, 'EX', 15 * 60);
@@ -550,13 +550,13 @@ export class AuthService {
       });
 
       const { data: userData } = await loggedClient.v2.me({
-        'user.fields': ['profile_image_url', 'description'],
+        'user.fields': ['profile_image_url', 'description', 'email'] as any,
       });
 
       const username = userData.username;
       const name = userData.name;
       const avatar = userData.profile_image_url;
-      const email = `${username}@x.com`;
+      const email = (userData as any).email ?? `${username}@x.com`;
 
       let user = await this.prisma.user.findFirst({
         where: { OR: [{ email }, { username }] },
