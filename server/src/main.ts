@@ -37,7 +37,7 @@ async function bootstrap() {
 
   app.use(helmet());
   app.enableCors({
-    origin: [process.env.FRONTEND_DOMAIN!, process.env.BACKEND_DOMAIN!],
+    origin: process.env.ALLOWED_FRONTEND_ORIGINS ? process.env.ALLOWED_FRONTEND_ORIGINS.split(",") : [],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],

@@ -556,7 +556,13 @@ export class AuthService {
       const username = userData.username;
       const name = userData.name;
       const avatar = userData.profile_image_url;
-      const email = (userData as any).email ?? `${username}@x.com`;
+      const email = (userData as any).email;
+
+      if (!email) {
+        throw new BadRequestException(
+          'Email is required. Please ensure your X account has a verified email or use Google Auth.',
+        );
+      }
 
       let user = await this.prisma.user.findFirst({
         where: { OR: [{ email }, { username }] },
