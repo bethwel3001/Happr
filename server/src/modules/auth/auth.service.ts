@@ -26,6 +26,7 @@ import {
 } from '../../common/utils/generate.token';
 import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
+import { TwitterApi } from 'twitter-api-v2';
 
 interface GoogleTokenPayload {
   email: string;
@@ -77,17 +78,26 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     @InjectQueue('email-queue') private emailQueue: Queue,
-  ) {}
+  ) { }
 
   private readonly GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
   private readonly GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
   private readonly GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI!;
+
+  private readonly X_CLIENT_ID = process.env.X_CLIENT_ID!;
+  private readonly X_CLIENT_SECRET = process.env.X_CLIENT_SECRET!;
+  private readonly X_REDIRECT_URI = process.env.X_REDIRECT_URI!;
 
   private readonly googleClient = new OAuth2Client(
     this.GOOGLE_CLIENT_ID,
     this.GOOGLE_CLIENT_SECRET,
     this.GOOGLE_REDIRECT_URI,
   );
+
+  private readonly xClient = new TwitterApi({
+    clientId: this.X_CLIENT_ID,
+    clientSecret: this.X_CLIENT_SECRET,
+  });
 
   private isUsernameAllowed(username: string): boolean {
     return !unauthorizedUsernames.includes(username.toLowerCase());
@@ -483,6 +493,85 @@ export class AuthService {
               picture ||
               `https://ui-avatars.com/api/?name=${fullName}&background=random&bold=true&size=128`,
             auth_provider: 'google',
+            is_verified: true,
+          },
+        });
+      }
+
+      const { access_token } = generateAccessToken(user.id, user.email);
+      const { refresh_token } = generateRefreshToken(user.id, user.email);
+
+      return { access_token, refresh_token, user };
+    } catch (error: unknown) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  async generateXAuthUri(): Promise<string> {
+    try {
+      const { url, codeVerifier, state } = this.xClient.generateOAuth2AuthLink(
+        this.X_REDIRECT_URI,
+        { scope: ['tweet.read', 'users.read', 'offline.access'] },
+      );
+
+      await redis.set(`x_state:${state}`, codeVerifier, 'EX', 15 * 60);
+
+      return url;
+    } catch (error: unknown) {
+      throw new InternalServerErrorException({
+        success: false,
+        message: 'Failed to generate X auth URI',
+        error,
+        data: [],
+      });
+    }
+  }
+
+  async xAuthCallback(
+    code: string,
+    state: string,
+  ): Promise<{ access_token: string; refresh_token: string; user: any }> {
+    if (!code || !state) {
+      throw new BadRequestException('Missing code or state');
+    }
+
+    const codeVerifier = await redis.get(`x_state:${state}`);
+    if (!codeVerifier) {
+      throw new BadRequestException('Invalid or expired state');
+    }
+
+    await redis.del(`x_state:${state}`);
+
+    try {
+      const { client: loggedClient } = await this.xClient.loginWithOAuth2({
+        code,
+        codeVerifier,
+        redirectUri: this.X_REDIRECT_URI,
+      });
+
+      const { data: userData } = await loggedClient.v2.me({
+        'user.fields': ['profile_image_url', 'description'],
+      });
+
+      const username = userData.username;
+      const name = userData.name;
+      const avatar = userData.profile_image_url;
+      const email = `${username}@x.com`;
+
+      let user = await this.prisma.user.findFirst({
+        where: { OR: [{ email }, { username }] },
+      });
+
+      if (!user) {
+        user = await this.prisma.user.create({
+          data: {
+            email,
+            username: username.replace(/\s+/g, ''),
+            password: '',
+            avatar:
+              avatar ||
+              `https://ui-avatars.com/api/?name=${name}&background=random&bold=true&size=128`,
+            auth_provider: 'x',
             is_verified: true,
           },
         });

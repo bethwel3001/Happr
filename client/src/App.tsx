@@ -28,6 +28,7 @@ const authPages = {
   "complete-google-auth-setup": lazy(
     () => import("@/pages/GoogleAuthCallback"),
   ),
+  "complete-x-auth-setup": lazy(() => import("@/pages/XAuthCallback")),
 };
 
 // User Pages

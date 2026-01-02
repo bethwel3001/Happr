@@ -7,6 +7,8 @@ interface ApiResponse {
   message: string;
 }
 
+import { isAxiosError } from "axios";
+
 const getUser = async (): Promise<GetUserResponse> => {
   try {
     const response = await axios.get<ApiResponse>("/api/v1/user/me");
@@ -17,6 +19,13 @@ const getUser = async (): Promise<GetUserResponse> => {
       message: response.message,
     };
   } catch (err: unknown) {
+    if (isAxiosError(err) && err.response?.status === 401) {
+      return {
+        success: false,
+        data: null,
+        message: "Unauthorized",
+      };
+    }
     if (err instanceof Error) {
       throw "";
     }
