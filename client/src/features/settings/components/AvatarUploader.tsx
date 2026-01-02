@@ -40,11 +40,19 @@ const AvatarUploader = ({
         htmlFor="file-uploader"
         className="relative w-fit rounded-full overflow-hidden cursor-pointer"
       >
-        <img
-          src={preview}
-          alt="Profile preview"
-          className={`${sizeClasses[size]} rounded-full object-cover`}
-        />
+        {preview ? (
+          <img
+            src={preview}
+            alt="Profile preview"
+            className={`${sizeClasses[size]} rounded-full object-cover`}
+          />
+        ) : (
+          <div
+            className={`${sizeClasses[size]} rounded-full bg-muted flex items-center justify-center`}
+          >
+            <Camera className="text-muted-foreground opacity-50" />
+          </div>
+        )}
 
         <div className="absolute inset-0 flex items-center justify-center transition-colors bg-transparent hover:bg-black/40">
           <Camera

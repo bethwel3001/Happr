@@ -52,8 +52,8 @@ const Onboarding = () => {
         {isLoading
           ? "Updating info..."
           : currentStep === totalSteps
-          ? "Goto Dashboard"
-          : "Next Step"}
+            ? "Goto Dashboard"
+            : "Next Step"}
       </Button>
     </section>
   );

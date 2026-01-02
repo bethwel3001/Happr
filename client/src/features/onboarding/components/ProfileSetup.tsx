@@ -26,6 +26,14 @@ const ProfileSetup = ({
   const [userLink, setUserLink] = useState<string>(user?.website_link || "");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
+  useEffect(() => {
+    if (user) {
+      setName(user.display_name || "");
+      setAbout(user.bio || "");
+      setUserLink(user.website_link || "");
+    }
+  }, [user]);
+
   const uploadFile = async (file: File): Promise<string | undefined> => {
     if (!file) return undefined;
 
