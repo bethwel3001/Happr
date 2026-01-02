@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const FooterSection = () => {
   return (
     <section
@@ -22,6 +24,15 @@ const FooterSection = () => {
       <p className="text-xs text-muted-foreground text-center">
         Built for creators who deserve to smile.
       </p>
+
+      <div className="flex gap-4 text-xs text-muted-foreground mt-2">
+        <Link to="/legal/terms" className="hover:underline">
+          Terms of Service
+        </Link>
+        <Link to="/legal/privacy" className="hover:underline">
+          Privacy Policy
+        </Link>
+      </div>
     </section>
   );
 };
