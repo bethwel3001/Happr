@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         "/api": {
-          target: env.VITE_API_URL || "https://happr-production.up.railway.app",
+          target: env.VITE_API_URL,
           changeOrigin: true,
           secure: false,
         },
