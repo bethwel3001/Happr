@@ -11,7 +11,7 @@ import type { UserData } from "@/types";
 
 interface GetUserResponse {
   success: boolean;
-  data: UserData;
+  data: UserData | null;
   message: string;
 }
 

@@ -5,6 +5,8 @@ import { Toaster } from "sonner";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import LandingPage from "@/pages/LandingPage";
 import SupportPage from "@/pages/SupportPage";
+import TermsOfService from "@/pages/TermsOfService";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
 
 // route guards
 import { ProtectedRoute, PublicRoute } from "@/components/guards";
@@ -72,6 +74,9 @@ const App = () => {
           </Route>
 
           <Route path="/:username" element={<SupportPage />} />
+
+          <Route path="/legal/terms" element={<TermsOfService />} />
+          <Route path="/legal/privacy" element={<PrivacyPolicy />} />
         </Routes>
       </Suspense>
 

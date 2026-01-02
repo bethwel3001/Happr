@@ -5,6 +5,7 @@ import Input from "@/components/ui/Input";
 import FieldErrorMsg from "./FieldErrorMsg";
 import ChooseUsernameForm from "./ChooseUsernameForm";
 import GoogleAuthButton from "./GoogleAuthButton";
+import XAuthButton from "./XAuthButton";
 
 import { useAuth } from "@/hooks/useAuth";
 import useClearFieldError from "../hooks/useClearFieldError";
@@ -65,6 +66,7 @@ const SignupForm = ({ initialUsername }: FormProps) => {
           className="w-full flex flex-col gap-1 py-4"
         >
           <GoogleAuthButton />
+          <XAuthButton />
 
           <p className="self-center font-fredoka font-bold text-primary mt-4 mb-6 ml-1">
             OR CONTINUE WITH
