@@ -13,7 +13,7 @@ import type {
   SigninInputs,
   FieldError,
   UserData,
-  AuthFuncResponse,
+  AuthFuncResponse
 } from "../types";
 import type { AuthProviderProps } from "@/hooks/useAuth";
 import { AuthContext } from "@/hooks/useAuth";
@@ -24,7 +24,7 @@ const excludedPaths = [
   "/reset-password",
   "/email-verification",
   "/complete-google-auth-setup",
-  "/complete-x-auth-setup",
+  "/complete-x-auth-setup"
 ];
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -43,13 +43,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const userQuery = useQuery({
     queryKey: ["getUser"],
-    queryFn: getUser,
+    queryFn: getUser
   });
 
   useEffect(() => {
     const isExcluded =
       location.pathname === "/" ||
-      excludedPaths.some((path) => location.pathname.startsWith(path));
+      excludedPaths.some(path => location.pathname.startsWith(path));
 
     if (userQuery.isSuccess && userQuery.data) {
       if (userQuery.data.success && userQuery.data.data) {
@@ -68,7 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     userQuery.isSuccess,
     userQuery.data,
     userQuery.isError,
-    location.pathname,
+    location.pathname
   ]);
 
   const signup = (data: SignupInputs): Promise<AuthFuncResponse> => {
@@ -77,7 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         {
           email: data.email.trim(),
           username: data.username.trim(),
-          password: data.password.trim(),
+          password: data.password.trim()
         },
         {
           onSuccess: () => resolve({ success: true }),
@@ -88,14 +88,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   acc[curr.field] = curr.errors;
                   return acc;
                 },
-                {},
+                {}
               );
               reject({ success: false, fieldsError: formattedErr });
             } else {
               reject({ success: false, fieldsError: null });
             }
-          },
-        },
+          }
+        }
       );
     });
   };
@@ -105,13 +105,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       rawSignin(
         {
           email: data.email.trim(),
-          password: data.password.trim(),
+          password: data.password.trim()
         },
         {
           onSuccess: async () => {
             await queryClient.invalidateQueries({
               queryKey: ["getUser"],
-              exact: true,
+              exact: true
             });
             resolve({ success: true });
           },
@@ -122,14 +122,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   acc[curr.field] = curr.errors;
                   return acc;
                 },
-                {},
+                {}
               );
               reject({ success: false, fieldsError: formattedErr });
             } else {
               reject({ success: false, fieldsError: null });
             }
-          },
-        },
+          }
+        }
       );
     });
   };
@@ -142,14 +142,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setIsUserAuthenticated(false);
           resolve();
         },
-        onError: (err) => reject(err),
+        onError: err => reject(err)
       });
     });
   };
 
   const deleteAccount = async (): Promise<AuthFuncResponse> => {
     if (!user) return { success: false };
-    return await new Promise<AuthFuncResponse>((resolve) => {
+
+    return await new Promise<AuthFuncResponse>(resolve => {
       rawAccountDeletion(user.id, {
         onSuccess: async () => {
           await queryClient.invalidateQueries({
@@ -160,7 +161,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setIsUserAuthenticated(false);
           resolve({ success: true });
         },
-        onError: () => resolve({ success: false }),
+        onError: () => resolve({ success: false })
       });
     });
   };
@@ -177,7 +178,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signout,
     isSigningOut,
     deleteAccount,
-    isDeletingAccount,
+    isDeletingAccount
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

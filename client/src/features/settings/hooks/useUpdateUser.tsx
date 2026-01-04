@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { updateUser } from "../api/updateUser";
@@ -16,19 +16,15 @@ interface PublicInfoUpdate {
   display_name?: string;
   bio?: string;
   website_link?: string;
+  is_onboarded?: string;
 }
 
 const useUpdateUser = () => {
   const { user, setUser } = useAuth();
-  const queryClient = useQueryClient();
 
-  const handleSuccess = async (data: ApiResponse<UserData>) => {
+  const handleSuccess = (data: ApiResponse<UserData>) => {
     const updatedUser = data.data;
-    setUser((prev) => (prev ? { ...prev, ...updatedUser } : updatedUser));
-    await queryClient.invalidateQueries({
-      queryKey: ["getUser"],
-      exact: true,
-    });
+    setUser(prev => (prev ? { ...prev, ...updatedUser } : updatedUser));
   };
 
   const privateInfoMutation = useMutation<
@@ -40,17 +36,17 @@ const useUpdateUser = () => {
     mutationFn: (payload): Promise<ApiResponse<UserData>> =>
       updateUser({
         id: user!.id,
-        ...payload,
+        ...payload
       }) as Promise<ApiResponse<UserData>>,
-    onSettled: async (data, error) => {
+    onSettled: (data, error) => {
       if (error) {
         toast.error("Failed to update private info");
         console.error(error);
         return;
       }
-      await handleSuccess(data!);
+      handleSuccess(data!);
       toast.success("Private info updated successfully");
-    },
+    }
   });
 
   const publicInfoMutation = useMutation<
@@ -62,22 +58,22 @@ const useUpdateUser = () => {
     mutationFn: (payload): Promise<ApiResponse<UserData>> =>
       updateUser({
         id: user!.id,
-        ...payload,
+        ...payload
       }) as Promise<ApiResponse<UserData>>,
-    onSettled: async (data, error) => {
+    onSettled: (data, error) => {
       if (error) {
         toast.error("Failed to update public info");
         return;
       }
-      await handleSuccess(data!);
+      handleSuccess(data!);
       toast.success("Public info updated successfully");
-    },
+    }
   });
 
   return {
     updatePrivateInfo: privateInfoMutation.mutateAsync,
     updatePublicInfo: publicInfoMutation.mutateAsync,
-    isUpdating: privateInfoMutation.isPending || publicInfoMutation.isPending,
+    isUpdating: privateInfoMutation.isPending || publicInfoMutation.isPending
   };
 };
 

@@ -11,7 +11,7 @@ import {
 const Onboarding = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
-  const [submitCount, setSubmitCount] = useState(0); // <- changed
+  const [submitCount, setSubmitCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   const totalSteps = 3;
@@ -27,7 +27,7 @@ const Onboarding = () => {
 
       {currentStep === 2 && (
         <ProfileSetup
-          submitCount={submitCount} // <- use counter
+          submitCount={submitCount}
           onSubmitComplete={() => {
             setCurrentStep(prev => prev + 1);
           }}
@@ -52,8 +52,8 @@ const Onboarding = () => {
         {isLoading
           ? "Updating info..."
           : currentStep === totalSteps
-            ? "Goto Dashboard"
-            : "Next Step"}
+          ? "Goto Dashboard"
+          : "Next Step"}
       </Button>
     </section>
   );
