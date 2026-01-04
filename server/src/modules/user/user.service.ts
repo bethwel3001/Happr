@@ -392,7 +392,9 @@ export class UserService {
         updatedUser.bank_account.encrypted_bank_account,
       );
     }
-    console.log(updatedUser.avatar);
+
+    await redis.del(`user:${id}:details`);
+
     return {
       success: true,
       data: {
@@ -496,7 +498,14 @@ export class UserService {
         message: 'Your account is not verified yet, check your email.',
       });
 
+    await this.prisma.refreshToken.deleteMany({
+      where: { user_id: targetUserId },
+    });
+
+    await redis.del(`user:${targetUserId}:details`);
+
     await this.prisma.user.delete({ where: { id: targetUserId } });
+
     return {
       success: true,
       data: [],

@@ -151,7 +151,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!user) return { success: false };
     return await new Promise<AuthFuncResponse>((resolve) => {
       rawAccountDeletion(user.id, {
-        onSuccess: () => {
+        onSuccess: async () => {
+          await queryClient.invalidateQueries({
+            queryKey: ["getUser"],
+            exact: true,
+          });
           setUser(null);
           setIsUserAuthenticated(false);
           resolve({ success: true });
