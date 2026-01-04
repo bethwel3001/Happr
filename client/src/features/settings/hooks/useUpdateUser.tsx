@@ -16,7 +16,7 @@ interface PublicInfoUpdate {
   display_name?: string;
   bio?: string;
   website_link?: string;
-  is_onboarded?: string;
+  is_onboarded?: boolean;
 }
 
 const useUpdateUser = () => {
