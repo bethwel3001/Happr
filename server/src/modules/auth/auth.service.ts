@@ -487,7 +487,7 @@ export class AuthService {
         user = await this.prisma.user.create({
           data: {
             email,
-            username: fullName.replace(/\s+/g, ''),
+            username: fullName.replace(/\s+/g, '').toLowerCase(),
             password: '',
             avatar:
               picture ||
@@ -565,14 +565,14 @@ export class AuthService {
       }
 
       let user = await this.prisma.user.findFirst({
-        where: { OR: [{ email }, { username }] },
+        where: { OR: [{ email }, { username: username.toLowerCase() }] },
       });
 
       if (!user) {
         user = await this.prisma.user.create({
           data: {
             email,
-            username: username.replace(/\s+/g, ''),
+            username: username.replace(/\s+/g, '').toLowerCase(),
             password: '',
             avatar:
               avatar ||
