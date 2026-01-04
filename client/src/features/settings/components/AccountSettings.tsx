@@ -1,13 +1,12 @@
 import { useState } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import { useAuth } from "@/hooks/useAuth";
 
 const AccountSettings = () => {
-  const { user } = useAuth();
-  const [usernameState, setUsernameState] = useState<string>(
-    user?.username || "",
-  );
+  const { user, deleteAccount, isDeletingAccount } = useAuth();
+  const [usernameState, setUsernameState] = useState<string>("");
   const [email, setEmail] = useState<string>(user?.email || "");
 
   return (
@@ -19,7 +18,7 @@ const AccountSettings = () => {
 
       <form
         aria-label="account settings form"
-        onSubmit={(e) => e.preventDefault()}
+        onSubmit={e => e.preventDefault()}
         className="w-full flex flex-col gap-4 mt-4"
       >
         <div className="w-full flex flex-col gap-1 p-4 border rounded-md">
@@ -35,7 +34,7 @@ const AccountSettings = () => {
             type="text"
             id="email-input"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={e => setEmail(e.target.value)}
             className="mt-3 mb-1"
           />
           <Button className="w-fit"> Update Email</Button>
@@ -64,17 +63,22 @@ const AccountSettings = () => {
           id="username-input"
           value={usernameState}
           placeholder={user?.username || ""}
-          onChange={(e) => setUsernameState(e.target.value)}
+          onChange={e => setUsernameState(e.target.value)}
           className="my-1"
         />
 
         <Button
           variant="destructive"
           disabled={usernameState !== user?.username}
+          onClick={() => deleteAccount()}
           className="mt-4"
         >
           Delete Account
         </Button>
+
+        {isDeletingAccount && (
+          <LoadingScreen className="fixed left-0 w-screen h-screen bg-white/50" />
+        )}
       </div>
     </div>
   );

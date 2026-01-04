@@ -16,6 +16,7 @@ interface PublicInfoUpdate {
   display_name?: string;
   bio?: string;
   website_link?: string;
+  is_onboarded?: string;
 }
 
 const useUpdateUser = () => {
@@ -23,7 +24,7 @@ const useUpdateUser = () => {
 
   const handleSuccess = (data: ApiResponse<UserData>) => {
     const updatedUser = data.data;
-    setUser((prev) => (prev ? { ...prev, ...updatedUser } : updatedUser));
+    setUser(prev => (prev ? { ...prev, ...updatedUser } : updatedUser));
   };
 
   const privateInfoMutation = useMutation<
@@ -35,7 +36,7 @@ const useUpdateUser = () => {
     mutationFn: (payload): Promise<ApiResponse<UserData>> =>
       updateUser({
         id: user!.id,
-        ...payload,
+        ...payload
       }) as Promise<ApiResponse<UserData>>,
     onSettled: (data, error) => {
       if (error) {
@@ -45,7 +46,7 @@ const useUpdateUser = () => {
       }
       handleSuccess(data!);
       toast.success("Private info updated successfully");
-    },
+    }
   });
 
   const publicInfoMutation = useMutation<
@@ -57,7 +58,7 @@ const useUpdateUser = () => {
     mutationFn: (payload): Promise<ApiResponse<UserData>> =>
       updateUser({
         id: user!.id,
-        ...payload,
+        ...payload
       }) as Promise<ApiResponse<UserData>>,
     onSettled: (data, error) => {
       if (error) {
@@ -66,13 +67,13 @@ const useUpdateUser = () => {
       }
       handleSuccess(data!);
       toast.success("Public info updated successfully");
-    },
+    }
   });
 
   return {
     updatePrivateInfo: privateInfoMutation.mutateAsync,
     updatePublicInfo: publicInfoMutation.mutateAsync,
-    isUpdating: privateInfoMutation.isPending || publicInfoMutation.isPending,
+    isUpdating: privateInfoMutation.isPending || publicInfoMutation.isPending
   };
 };
 

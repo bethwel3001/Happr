@@ -19,13 +19,14 @@ const PageSettings = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const fallbackAvatar = `https://ui-avatars.com/api/?name=${user?.username}&bold=true&size=128.png`;
+  const fallbackCover = "/icons/happr-banner.jpg";
 
   const uploadFile = async (file: File): Promise<string | undefined> => {
     if (!file) return undefined;
 
     const req: SignatureRequest = {
       file_size: file.size,
-      content_type: file.type,
+      content_type: file.type
     };
 
     try {
@@ -49,7 +50,7 @@ const PageSettings = () => {
         `https://api.cloudinary.com/v1_1/${signatureData.cloud_name}/image/upload`,
         {
           method: "POST",
-          body: formData,
+          body: formData
         }
       );
 
@@ -94,7 +95,7 @@ const PageSettings = () => {
         bio: about,
         website_link: userLink,
         ...(avatarUrl && { avatar: avatarUrl }),
-        ...(coverUrl && { cover_photo: coverUrl }),
+        ...(coverUrl && { cover_photo: coverUrl })
       });
 
       if (response.success && response.data) {
@@ -122,7 +123,7 @@ const PageSettings = () => {
       <h2 className="text-2xl">Page Settings</h2>
 
       <form
-        onSubmit={(e) => {
+        onSubmit={e => {
           e.preventDefault();
           handleSave();
         }}
@@ -140,7 +141,9 @@ const PageSettings = () => {
         <div className="w-full flex flex-col gap-4">
           <h3 className="text-xl">Cover Photo</h3>
           <CoverUploader
-            currentUrl={user?.cover_photo ? `${user.cover_photo}` : undefined}
+            currentUrl={
+              user?.cover_photo ? `${user.cover_photo}` : fallbackCover
+            }
             onFileSelect={setCoverFile}
           />
         </div>
@@ -153,7 +156,7 @@ const PageSettings = () => {
             type="text"
             id="display-name-input"
             value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
+            onChange={e => setDisplayName(e.target.value)}
           />
         </div>
 
@@ -164,7 +167,7 @@ const PageSettings = () => {
           <textarea
             id="about-input"
             value={about}
-            onChange={(e) => setAbout(e.target.value)}
+            onChange={e => setAbout(e.target.value)}
             className="w-full h-[10rem] p-3 text-sm bg-input text-input-foreground border border-input rounded-lg"
           />
         </div>
@@ -177,7 +180,7 @@ const PageSettings = () => {
             type="url"
             id="user-link-input"
             value={userLink}
-            onChange={(e) => setUserLink(e.target.value)}
+            onChange={e => setUserLink(e.target.value)}
           />
         </div>
 

@@ -4,7 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUpdateUser } from "@/features/settings";
 import { AvatarUploader } from "@/features/settings";
 import { getSignature } from "@/features/settings/api/updateUser";
-import type { SignatureRequest, SignatureData } from "@/features/settings/api/updateUser";
+import type {
+  SignatureRequest,
+  SignatureData
+} from "@/features/settings/api/updateUser";
 import Input from "@/components/ui/Input";
 
 type PageProps = {
@@ -16,7 +19,7 @@ type PageProps = {
 const ProfileSetup = ({
   submitCount,
   onSubmitComplete,
-  onLoadingChange,
+  onLoadingChange
 }: PageProps) => {
   const { user } = useAuth();
   const { updatePublicInfo } = useUpdateUser();
@@ -39,7 +42,7 @@ const ProfileSetup = ({
 
     const req: SignatureRequest = {
       file_size: file.size,
-      content_type: file.type,
+      content_type: file.type
     };
 
     try {
@@ -63,7 +66,7 @@ const ProfileSetup = ({
         `https://api.cloudinary.com/v1_1/${signatureData.cloud_name}/image/upload`,
         {
           method: "POST",
-          body: formData,
+          body: formData
         }
       );
 
@@ -91,8 +94,6 @@ const ProfileSetup = ({
         return;
       }
 
-      console.log("SUBMITTING:", { name, about, userLink, avatarFile });
-
       let avatarUrl: string | undefined;
       if (avatarFile) {
         avatarUrl = await uploadFile(avatarFile);
@@ -103,9 +104,9 @@ const ProfileSetup = ({
         display_name: name,
         bio: about,
         website_link: userLink,
+        is_onboarded: true
       });
 
-      // Only on success
       onSubmitComplete();
     } catch (err) {
       console.error(err);
@@ -132,7 +133,7 @@ const ProfileSetup = ({
         <AvatarUploader
           currentUrl={user?.avatar}
           size="large"
-          onFileSelect={(file) => setAvatarFile(file)}
+          onFileSelect={file => setAvatarFile(file)}
         />
       </div>
 
@@ -141,7 +142,7 @@ const ProfileSetup = ({
         <Input
           id="name-input"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={e => setName(e.target.value)}
         />
       </div>
 
@@ -151,7 +152,7 @@ const ProfileSetup = ({
           id="about-input"
           autoComplete="off"
           value={about}
-          onChange={(e) => setAbout(e.target.value)}
+          onChange={e => setAbout(e.target.value)}
           className="w-full h-[10rem] p-3 text-sm bg-input border border-input rounded-lg"
         />
       </div>
@@ -162,7 +163,7 @@ const ProfileSetup = ({
           id="link-input"
           type="url"
           value={userLink}
-          onChange={(e) => setUserLink(e.target.value)}
+          onChange={e => setUserLink(e.target.value)}
         />
       </div>
     </form>

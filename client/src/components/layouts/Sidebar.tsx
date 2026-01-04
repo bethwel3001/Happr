@@ -7,7 +7,7 @@ import {
   Heart,
   Wallet,
   Settings,
-  LogOut,
+  LogOut
 } from "lucide-react";
 import useIsMobile from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,11 +18,11 @@ const navLinks: NavLinks[] = [
   { icon: LayoutPanelLeft, text: "Dashboard", url: "/dashboard" },
   { icon: Heart, text: "Supporters", url: "/supporters" },
   { icon: Wallet, text: "Payout", url: "/payout" },
-  { icon: Settings, text: "Settings", url: "/settings" },
+  { icon: Settings, text: "Settings", url: "/settings" }
 ];
 
 const Sidebar = ({
-  setIsMenuOpened,
+  setIsMenuOpened
 }: {
   setIsMenuOpened: Dispatch<SetStateAction<boolean>>;
 }) => {
@@ -70,7 +70,6 @@ const Sidebar = ({
 
       <button
         onClick={() => {
-          // setIsMenuOpened(false);
           signout();
         }}
         disabled={isSigningOut}

@@ -20,9 +20,11 @@ const useDeleteAccount = () => {
     onSuccess: () => {
       if (loadingToastId.current) toast.dismiss(loadingToastId.current);
     },
-    onError: () => {
+    onError: error => {
       if (loadingToastId.current) toast.dismiss(loadingToastId.current);
+
       toast.error("Account deletion failed");
+      console.log("Account deletion failed:", error);
     }
   });
 };

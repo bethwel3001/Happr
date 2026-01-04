@@ -18,7 +18,9 @@ const CoverUploader = ({
   aspect = "wide",
   onFileSelect
 }: CoverUploaderProps) => {
-  const [preview, setPreview] = useState(currentUrl || "");
+  const [preview, setPreview] = useState(
+    currentUrl || "/icons/happr-banner.jpg"
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

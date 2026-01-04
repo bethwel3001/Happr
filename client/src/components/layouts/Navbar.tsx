@@ -8,7 +8,6 @@ const Navbar = () => {
   const [isMenuOpened, setIsMenuOpened] = useState(false);
   const isMobile = useIsMobile();
   const { user } = useAuth();
-  console.log(user);
 
   return (
     <div className="w-full flex flex-col items-center">
