@@ -189,9 +189,13 @@ export class CompleteUserDatabaseDTO {
     description: 'Bank account details',
     required: false,
     example: {
+      bankId: '550e8400-e29b-41d4-a716-446655440001',
+      bankCode: '058',
+      longcode: '058152052',
       bank_name: 'Guaranty Trust Bank',
       account_name: 'John Chukwuma',
       account_number: '0123456789',
+      last_updated: '2024-01-15T10:30:00.000Z',
     },
   })
   bank_account?: {
