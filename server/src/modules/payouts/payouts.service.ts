@@ -18,7 +18,7 @@ export interface PaystackBank {
   name: string;
   slug: string;
   code: string;
-  longcode: string;
+  longcode?: string;
   gateway: string | null;
   pay_with_bank: boolean;
   supports_transfer: boolean;
