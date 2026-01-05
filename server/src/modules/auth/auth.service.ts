@@ -553,6 +553,7 @@ export class AuthService {
         'user.fields': ['profile_image_url', 'description', 'email'] as any,
       });
 
+      console.log("x user data", userData);
       const username = userData.username;
       const name = userData.name;
       const avatar = userData.profile_image_url;
