@@ -8,7 +8,10 @@ import {
 import { PrismaService } from '../../../prisma/prisma.service';
 import { UpdateUserDTO, generateSignatureDTO } from '../../dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
-import { generateCryptographicOtp } from '../../common/utils/generate.token';
+import {
+  generateCryptographicOtp,
+  generateMailToken,
+} from '../../common/utils/generate.token';
 import { redis } from '../../common/config/redis.config';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -351,7 +354,6 @@ export class UserService {
       prismaUpdateData.website_link = dto.website_link;
     if (dto.is_onboarded !== undefined)
       prismaUpdateData.is_onboarded = dto.is_onboarded;
-    if (dto.email !== undefined) prismaUpdateData.email = dto.email;
     if (dto.avatar !== undefined) prismaUpdateData.avatar = dto.avatar;
     if (dto.cover_photo !== undefined)
       prismaUpdateData.cover_photo = dto.cover_photo;
@@ -542,6 +544,62 @@ export class UserService {
       success: true,
       data: { otpSent: true },
       message: 'OTP sent successfully.',
+    };
+  }
+
+  async changeEmail(
+    userId: string,
+    newEmail: string,
+  ): Promise<ApiResponseDTO> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new NotFoundException({
+        success: false,
+        data: [],
+        message: 'User does not exist',
+      });
+    }
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: newEmail },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException({
+        success: false,
+        data: [],
+        message: 'Email is already taken by another user.',
+      });
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        email: newEmail,
+        is_verified: false,
+      },
+    });
+
+    const { email_token } = generateMailToken(user.id, user.username, newEmail);
+
+    await this.emailQueue.add('send-verification', {
+      type: 'verification',
+      data: {
+        email: newEmail,
+        username: user.username,
+        token: email_token,
+        expiry: '4 hours',
+      },
+    });
+
+    await redis.del(`user:${userId}:details`);
+
+    return {
+      success: true,
+      data: [],
+      message: 'Email updated successfully. Please verify your new email.',
     };
   }
 }

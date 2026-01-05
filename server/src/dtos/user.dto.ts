@@ -68,15 +68,6 @@ export class UpdateUserDTO {
   is_onboarded?: boolean;
 
   @ApiProperty({
-    description: 'User email address',
-    required: false,
-    example: 'john.doe@example.com',
-  })
-  @IsOptional()
-  @IsEmail()
-  email?: string;
-
-  @ApiProperty({
     type: 'string',
     description: 'cloudinary user avatar photo',
     required: false,
@@ -250,4 +241,14 @@ export class generateSignatureDTO {
   @IsString()
   @IsNotEmpty()
   content_type: string;
+}
+
+export class ChangeEmailDTO {
+  @ApiProperty({
+    description: 'The new email address for the user',
+    example: 'new.email@example.com',
+  })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
 }

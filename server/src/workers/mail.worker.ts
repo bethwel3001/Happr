@@ -48,7 +48,7 @@ export class MailWorker extends WorkerHost {
         }
 
         case 'otp': {
-          await this.mailService.sendPayoutOtp(
+          await this.mailService.sendOtp(
             data.email,
             data.otp!,
             data.username,

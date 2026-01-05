@@ -48,7 +48,7 @@ export class MailService {
     });
   }
 
-  async sendPayoutOtp(
+  async sendOtp(
     email: string,
     otp: string,
     username: string,

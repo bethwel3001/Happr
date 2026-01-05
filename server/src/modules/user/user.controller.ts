@@ -22,6 +22,7 @@ import {
   UpdateUserDTO,
   GenerateOtpDTO,
   generateSignatureDTO,
+  ChangeEmailDTO,
 } from '../../dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
 import { CompleteUserDatabaseDTO } from '../../dtos/user.dto';
@@ -79,6 +80,22 @@ export class UserController {
     @Body() dto: generateSignatureDTO,
   ): Promise<ApiResponseDTO<any>> {
     return this.userService.generateSignature(dto);
+  }
+
+  @Patch('change-email')
+  @HttpCode(200)
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: 'Change user email',
+    description:
+      'Updates the user email and sends a verification link to the new email.',
+  })
+  async changeEmail(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: ChangeEmailDTO,
+  ): Promise<ApiResponseDTO> {
+    return this.userService.changeEmail(req.user._id, dto.email);
   }
 
   @Patch(':id')
