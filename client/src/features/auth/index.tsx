@@ -12,6 +12,7 @@ import SuccessEmailVerification from "./components/email_verification/SuccessEma
 import useUsernameAvailability from "./hooks/useUsernameAvailability";
 import useEmailVerification from "./hooks/useEmailVerification";
 import useGenerateOtp from "./hooks/useGenerateOtp";
+import useVerifyPasswordOtp from "./hooks/useVerifyPasswordOtp";
 import { useAuth } from "@/hooks/useAuth";
 
 // images
@@ -34,6 +35,7 @@ export {
   useUsernameAvailability,
   useEmailVerification,
   useGenerateOtp,
+  useVerifyPasswordOtp,
   useAuth
 };
 

@@ -13,6 +13,7 @@ const useGenerateOtp = (): UseMutationResult<
   { email: string }
 > => {
   return useMutation({
+    mutationKey: ["generate", "otp"],
     mutationFn: ({ email }) => generateOtp({ email }),
     onSuccess: ({ message }) => {
       toast.success(message);
