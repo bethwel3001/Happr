@@ -1,23 +1,29 @@
 import { axios } from "@/lib";
 import { AxiosError } from "axios";
-import type { ApiResponse } from "../types";
 
 type FuncArgs = {
   email: string;
   otp: string;
 };
 
-type Response = {
+type ReturnResponse = {
   success: boolean;
   message: string;
+  accessToken: string;
+};
+
+type ApiResponse = {
+  success: boolean;
+  message: string;
+  data: { accessToken: string };
 };
 
 const verifyResetPasswordOtp = async ({
   email,
   otp
-}: FuncArgs): Promise<Response> => {
+}: FuncArgs): Promise<ReturnResponse> => {
   try {
-    const { success } = await axios.post<ApiResponse>(
+    const { success, data } = await axios.post<ApiResponse>(
       "/api/v1/auth/verify-forgot-email-password-otp",
       {
         email,
@@ -27,7 +33,8 @@ const verifyResetPasswordOtp = async ({
 
     return {
       success,
-      message: "OTP verified successfully, redirecting you..."
+      message: "OTP verified successfully, redirecting you...",
+      accessToken: data.accessToken
     };
   } catch (error: unknown) {
     if (error instanceof AxiosError) {

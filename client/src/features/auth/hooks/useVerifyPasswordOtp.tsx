@@ -2,10 +2,12 @@ import { useMutation, type UseMutationResult } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import verifyResetPasswordOtp from "../api/verifyResetPasswordOtp";
+import { setAccessToken } from "@/features/auth/lib/auth-token";
 
 type VerifyPasswordOtpResponse = {
   success: boolean;
   message: string;
+  accessToken: string;
 };
 
 type VerifyPasswordOtpArg = {
@@ -21,11 +23,16 @@ const useVerifyPasswordOtp = (): UseMutationResult<
   return useMutation({
     mutationKey: ["verify", "password-reset", "otp"],
     mutationFn: ({ email, otp }) => verifyResetPasswordOtp({ email, otp }),
-    onSuccess: ({ message }) => {
+
+    onSuccess: ({ message, accessToken }) => {
+      setAccessToken(accessToken);
       toast.success(message);
     },
+
     onError: error => {
-      if (error instanceof Error) toast.error(error.message);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      }
     }
   });
 };
