@@ -60,6 +60,7 @@ export class PayoutsController {
       bankName: string;
       accountNumber: string;
       accountName: string;
+      last_updated: string;
     }>
   > {
     const userId = req.user._id;

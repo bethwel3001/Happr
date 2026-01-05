@@ -65,6 +65,7 @@ export class PayoutsService {
     bankName: string;
     accountNumber: string;
     accountName: string;
+    last_updated: string;
   }): string {
     const iv = crypto.randomBytes(12);
     const cipher = crypto.createCipheriv('aes-256-gcm', this.encryptionKey, iv);
@@ -74,38 +75,6 @@ export class PayoutsService {
     ]);
     const tag = cipher.getAuthTag();
     return Buffer.concat([iv, tag, encrypted]).toString('base64');
-  }
-
-  private decryptBankDetails(encryptedBankDetails: string): {
-    bankId: string;
-    bankCode: string;
-    longcode?: string | null;
-    bankName: string;
-    accountNumber: string;
-    accountName: string;
-  } {
-    const data = Buffer.from(encryptedBankDetails, 'base64');
-    const iv = data.subarray(0, 12);
-    const tag = data.subarray(12, 28);
-    const encryptedData = data.subarray(28);
-    const decipher = crypto.createDecipheriv(
-      'aes-256-gcm',
-      this.encryptionKey,
-      iv,
-    );
-    decipher.setAuthTag(tag);
-    const decrypted = Buffer.concat([
-      decipher.update(encryptedData),
-      decipher.final(),
-    ]).toString('utf8');
-    return JSON.parse(decrypted) as {
-      bankId: string;
-      bankCode: string;
-      longcode?: string | null;
-      bankName: string;
-      accountNumber: string;
-      accountName: string;
-    };
   }
 
   async updatePayoutDetails(
@@ -119,8 +88,10 @@ export class PayoutsService {
       bankName: string;
       accountNumber: string;
       accountName: string;
+      last_updated: string;
     }>
   > {
+    const now = new Date().toISOString();
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
@@ -155,6 +126,7 @@ export class PayoutsService {
       bankName: dto.bankName,
       accountNumber: dto.accountNumber,
       accountName: dto.accountName,
+      last_updated: now,
     });
 
     const existingBankAccount = await this.prisma.bankAccount.findUnique({
@@ -165,7 +137,7 @@ export class PayoutsService {
         where: { id: userId },
         data: {
           encrypted_bank_account: encryptedBankAccount,
-          updated_at: new Date(),
+          updated_at: now,
         },
       });
     } else {
@@ -185,6 +157,7 @@ export class PayoutsService {
         bankName: dto.bankName,
         accountNumber: dto.accountNumber,
         accountName: dto.accountName,
+        last_updated: now,
       },
       message: 'Payout details updated successfully.',
     };

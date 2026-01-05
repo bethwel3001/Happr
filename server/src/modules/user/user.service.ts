@@ -38,6 +38,7 @@ interface FixedCompleteUserDTO {
     account_name: string;
     account_number: string;
     bank_code: string;
+    last_updated: string;
     longcode?: string | null;
   } | null;
 
@@ -123,26 +124,6 @@ export class UserService {
     this.encryptionKey = Buffer.from(process.env.ENCRYPTION_KEY, 'hex');
   }
 
-  private encryptBankDetails(bankDetails: {
-    bank_id: string;
-    bank_code: string;
-    longcode?: string | null;
-    bank_name: string;
-    account_number: string;
-    account_name: string;
-  }): string {
-    const iv = crypto.randomBytes(12);
-    const cipher = crypto.createCipheriv('aes-256-gcm', this.encryptionKey, iv);
-
-    const encrypted = Buffer.concat([
-      cipher.update(JSON.stringify(bankDetails), 'utf8'),
-      cipher.final(),
-    ]);
-    const tag = cipher.getAuthTag();
-
-    return Buffer.concat([iv, tag, encrypted]).toString('base64');
-  }
-
   private decryptBankDetails(encryptedBankDetails: string): {
     bank_id: string;
     bank_code: string;
@@ -150,6 +131,7 @@ export class UserService {
     bank_name: string;
     account_number: string;
     account_name: string;
+    last_updated: string;
   } {
     const data = Buffer.from(encryptedBankDetails, 'base64');
     const iv = data.subarray(0, 12);
@@ -175,6 +157,7 @@ export class UserService {
       bank_name: string;
       account_number: string;
       account_name: string;
+      last_updated: string;
     };
   }
 
@@ -246,6 +229,7 @@ export class UserService {
       bank_name: string;
       account_number: string;
       account_name: string;
+      last_updated: string;
     } | null = null;
 
     if (user.bank_account?.encrypted_bank_account) {
@@ -388,6 +372,7 @@ export class UserService {
       bank_name: string;
       account_number: string;
       account_name: string;
+      last_updated: string;
     } | null = null;
 
     if (updatedUser.bank_account?.encrypted_bank_account) {
