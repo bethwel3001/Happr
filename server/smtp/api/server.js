@@ -98,6 +98,31 @@ app.get('/api/send-email', async (req, res) => {
           </div>
         `,
       });
+    } else if (type === 'email-change') {
+      const verifyLink = `${process.env.FRONTEND_DOMAIN}/email-verification?token=${token}&username=${username}`; // Assuming same verification flow
+      await transporter.sendMail({
+        from: `"Happr Security" <${process.env.GMAIL_AUTH_USER}>`,
+        to: email,
+        subject: 'Action Required: Verify your new email address',
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 40px; color: #111827;">
+            <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+              <h2 style="text-align: center; color: #111827;">Verify New Email Address</h2>
+              <p style="font-size: 16px; line-height: 1.7;">Hi <strong>${username}</strong>,</p>
+              <p style="font-size: 16px; line-height: 1.7;">You recently updated the email address for your Happr account. To ensure security and continue using your account seamlessly, please verify this new email address.</p>
+              <p style="font-size: 16px; line-height: 1.7;">This link is valid for <strong>${expiry || '24 hours'}</strong>.</p>
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="${verifyLink}" style="background-color: #4f46e5; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 500; display: inline-block;">Verify New Email</a>
+              </p>
+              <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">If verify button doesn't work, copy and paste this link into your browser:</p>
+              <p style="font-size: 13px; color: #4f46e5; word-break: break-all;"><a href="${verifyLink}" style="color: #4f46e5;">${verifyLink}</a></p>
+              <p style="font-size: 14px; color: #6b7280;">If you did not request this change, please ignore this email or contact our support team immediately.</p>
+              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+              <p style="font-size: 13px; color: #9ca3af; text-align: center;">&copy; ${new Date().getFullYear()} Happr. All rights reserved.</p>
+            </div>
+          </div>
+        `,
+      });
     }
 
     res.status(200).json({ success: true });

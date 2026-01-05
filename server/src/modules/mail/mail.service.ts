@@ -60,4 +60,19 @@ export class MailService {
       type: 'otp',
     });
   }
+
+  async sendEmailChangeEmail(
+    email: string,
+    username: string,
+    token: string,
+    expiry: string,
+  ): Promise<EmailResponse> {
+    return this.sendEmailRequest({
+      email,
+      username,
+      token,
+      expiry,
+      type: 'email-change',
+    });
+  }
 }

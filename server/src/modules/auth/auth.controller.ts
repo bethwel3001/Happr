@@ -313,8 +313,16 @@ export class AuthController {
       'OTP verified. Access token generated. Use token to reset password.',
     type: ApiResponseDTO,
   })
-  async forgotPassword(@Body() dto: ForgotEmailPasswordDTO) {
-    return this.authService.verifyForgotPassword(dto);
+  async forgotPassword(@Res({ passthrough: true }) res: Response, @Body() dto: ForgotEmailPasswordDTO) {
+    const result = await this.authService.verifyForgotPassword(dto);
+    const accessToken = result.data.accessToken
+
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 30 * 60 * 1000,
+    });
   }
 
   @Patch('reset-password')
