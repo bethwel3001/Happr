@@ -511,10 +511,10 @@ export class AuthService {
     try {
       const { url, codeVerifier, state } = this.xClient.generateOAuth2AuthLink(
         this.X_REDIRECT_URI,
-        { scope: ['tweet.read', 'users.read', 'offline.access', 'email'] },
+        { scope: ['tweet.read', 'users.read', 'offline.access'] },
       );
 
-      await redis.set(`x_state:${state}`, codeVerifier, 'EX', 15 * 60);
+      await redis.set(`x_state:${state}`, codeVerifier, 'EX', 15 * 20);
 
       return url;
     } catch (error: unknown) {

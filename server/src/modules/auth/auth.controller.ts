@@ -254,7 +254,7 @@ export class AuthController {
     status: 200,
     description: 'The X OAuth URL as JSON',
   })
-  xAuth(): Promise<ApiResponseDTO> {
+  async xAuth(): Promise<ApiResponseDTO> {
     return this.authService.generateXAuthUri().then((uri) => ({
       success: true,
       message: 'X OAuth URL generated successfully',
@@ -314,15 +314,7 @@ export class AuthController {
     type: ApiResponseDTO,
   })
   async forgotPassword(@Res({ passthrough: true }) res: Response, @Body() dto: ForgotEmailPasswordDTO) {
-    const result = await this.authService.verifyForgotPassword(dto);
-    const accessToken = result.data.accessToken
-
-    res.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 30 * 60 * 1000,
-    });
+    return this.authService.verifyForgotPassword(dto);
   }
 
   @Patch('reset-password')
