@@ -1,0 +1,49 @@
+import { axios } from "@/lib";
+import { AxiosError } from "axios";
+import type { ApiResponse } from "../types";
+
+type FuncArgs = {
+  email: string;
+  otp: string;
+};
+
+type Response = {
+  success: boolean;
+  message: string;
+};
+
+const verifyResetPasswordOtp = async ({
+  email,
+  otp
+}: FuncArgs): Promise<Response> => {
+  try {
+    const { success } = await axios.post<ApiResponse>(
+      "/api/v1/auth/verify-forgot-email-password-otp",
+      {
+        email,
+        otp
+      }
+    );
+
+    return {
+      success,
+      message: "OTP verified successfully, redirecting you..."
+    };
+  } catch (error: unknown) {
+    if (error instanceof AxiosError) {
+      const status = error.response?.status;
+
+      if (status === 400 || status === 404) {
+        throw new Error("Invalid OTP");
+      }
+
+      throw new Error(
+        error.response?.data?.message || "Something went wrong on the server"
+      );
+    }
+
+    throw new Error("Something went wrong while verifying OTP");
+  }
+};
+
+export default verifyResetPasswordOtp;

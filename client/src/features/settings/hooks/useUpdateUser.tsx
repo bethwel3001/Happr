@@ -7,7 +7,6 @@ import type { ApiResponse, UserData } from "../types";
 interface PrivateInfoUpdate {
   username?: string;
   email?: string;
-  password?: string;
 }
 
 interface PublicInfoUpdate {
