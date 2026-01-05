@@ -585,7 +585,7 @@ export class UserService {
     const { email_token } = generateMailToken(user.id, user.username, newEmail);
 
     await this.emailQueue.add('send-verification', {
-      type: 'verification',
+      type: 'email-change',
       data: {
         email: newEmail,
         username: user.username,

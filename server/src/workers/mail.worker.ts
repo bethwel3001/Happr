@@ -4,7 +4,7 @@ import { MailService } from '../modules/mail/mail.service';
 import { Logger } from '@nestjs/common';
 
 interface EmailJobData {
-  type: 'verification' | 'welcome' | 'otp';
+  type: 'verification' | 'welcome' | 'otp' | 'email-change';
   data: {
     email: string;
     username: string;
@@ -34,6 +34,21 @@ export class MailWorker extends WorkerHost {
               : data.expiry;
 
           await this.mailService.sendVerificationEmail(
+            data.email,
+            data.username,
+            data.token!,
+            expiryString!,
+          );
+          break;
+        }
+
+        case 'email-change': {
+          const expiryString =
+            data.expiry instanceof Date
+              ? data.expiry.toISOString()
+              : data.expiry;
+
+          await this.mailService.sendEmailChangeEmail(
             data.email,
             data.username,
             data.token!,
