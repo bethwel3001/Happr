@@ -18,7 +18,7 @@ import {
   ResetPasswordDTO,
   UsernameAvailabilityDTO,
   ForgotEmailPasswordDTO,
-} from '../../dtos/auth.module.dto';
+} from './dtos/auth.dto';
 import { AuthService } from './auth.service';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
 import {

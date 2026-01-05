@@ -22,7 +22,7 @@ import axios, { AxiosResponse } from 'axios';
 import {
   ResolveAccountDTO,
   UpdatePayoutDetailsDTO,
-} from '../../dtos/payouts.dto';
+} from './dtos/payouts.dto';
 import { PaystackBank } from './payouts.service';
 import { redis } from '../../common/config/redis.config';
 export interface PaystackBanksResponse {
@@ -34,7 +34,7 @@ export interface PaystackBanksResponse {
 @ApiTags('Payouts')
 @Controller('payouts')
 export class PayoutsController {
-  constructor(private readonly payoutsService: PayoutsService) {}
+  constructor(private readonly payoutsService: PayoutsService) { }
 
   @Patch('payout-details')
   @ApiBearerAuth()

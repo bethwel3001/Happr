@@ -6,7 +6,7 @@ import {
   PayloadTooLargeException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { UpdateUserDTO, generateSignatureDTO } from '../../dtos/user.dto';
+import { UpdateUserDTO, generateSignatureDTO } from './dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
 import {
   generateCryptographicOtp,
