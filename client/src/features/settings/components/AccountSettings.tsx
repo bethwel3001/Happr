@@ -15,7 +15,7 @@ const AccountSettings = () => {
   const [usernameState, setUsernameState] = useState<string>("");
   const [email, setEmail] = useState<string>("");
 
-  const handleEmailUpdate = (e: React.FormEvent<HTMLFormEvent>) => {
+  const handleEmailUpdate = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const trimmed = email.trim();

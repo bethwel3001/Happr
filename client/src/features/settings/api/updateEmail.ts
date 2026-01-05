@@ -20,9 +20,11 @@ const updateEmail = async ({
       }
     );
 
+    const { success, message } = response;
     return {
-      success: response.success,
-      message: response.message
+      success,
+      message:
+        message ?? "Email updated successfully, please verify your new email."
     };
   } catch (error: unknown) {
     if (error instanceof AxiosError) {

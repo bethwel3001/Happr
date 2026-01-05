@@ -8,10 +8,14 @@ type ReturnResponse = {
   message: string;
 };
 
+type HookArg = {
+  email: string;
+};
+
 const useUpdateEmail = (): UseMutationResult<
   ReturnResponse,
-  Error,
-  { email: string }
+  unknown,
+  HookArg
 > => {
   const { signout } = useAuth();
 
