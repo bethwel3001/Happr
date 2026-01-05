@@ -195,9 +195,13 @@ export class CompleteUserDatabaseDTO {
     },
   })
   bank_account?: {
+    bankId: string;
+    bankCode: string;
+    longcode?: string | null;
     bank_name: string;
     account_name: string;
     account_number: string;
+    last_updated: string;
   };
 
   @ApiProperty({
