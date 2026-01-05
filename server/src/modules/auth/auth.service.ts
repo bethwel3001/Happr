@@ -16,7 +16,7 @@ import {
   UsernameAvailabilityDTO,
   ResetPasswordDTO,
   ForgotEmailPasswordDTO,
-} from '../../dtos/auth.module.dto';
+} from './dtos/auth.dto';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import {

@@ -23,9 +23,9 @@ import {
   GenerateOtpDTO,
   generateSignatureDTO,
   ChangeEmailDTO,
-} from '../../dtos/user.dto';
+} from './dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
-import { CompleteUserDatabaseDTO } from '../../dtos/user.dto';
+import { CompleteUserDatabaseDTO } from './dtos/user.dto';
 import type { AuthenticatedRequest } from '../../common/guards/auth.guard';
 
 @ApiTags('User Management')
