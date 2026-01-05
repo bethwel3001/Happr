@@ -22,7 +22,7 @@ const UserPagesLayout = lazy(
 const authPages = {
   signup: lazy(() => import("@/pages/SignUp")),
   signin: lazy(() => import("@/pages/SignIn")),
-  "reset-assword": lazy(() => import("@/pages/ResetPassword")),
+  "reset-password": lazy(() => import("@/pages/ResetPassword")),
   "email-verification": lazy(() => import("@/pages/EmailVerification")),
   "complete-setup": lazy(() => import("@/pages/Onboarding")),
   "complete-google-auth-setup": lazy(

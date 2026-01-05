@@ -11,6 +11,7 @@ import SuccessEmailVerification from "./components/email_verification/SuccessEma
 //hooks
 import useUsernameAvailability from "./hooks/useUsernameAvailability";
 import useEmailVerification from "./hooks/useEmailVerification";
+import useGenerateOtp from "./hooks/useGenerateOtp";
 import { useAuth } from "@/hooks/useAuth";
 
 // images
@@ -25,11 +26,16 @@ export {
   ResetPasswordForm,
   InvalidEmailVerification,
   LoadingEmailVerification,
-  SuccessEmailVerification,
+  SuccessEmailVerification
 };
 
 // exporting hooks
-export { useUsernameAvailability, useEmailVerification, useAuth };
+export {
+  useUsernameAvailability,
+  useEmailVerification,
+  useGenerateOtp,
+  useAuth
+};
 
 // exporting assets
 export { MailRed };
