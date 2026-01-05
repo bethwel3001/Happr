@@ -5,27 +5,31 @@ import { Toaster } from "sonner";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import LandingPage from "@/pages/LandingPage";
 import SupportPage from "@/pages/SupportPage";
+import TermsOfService from "@/pages/TermsOfService";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
 
 // route guards
 import { ProtectedRoute, PublicRoute } from "@/components/guards";
 
 const AuthLayout = lazy(() =>
-  import("@/features/auth").then((module) => ({ default: module.Layout })),
+  import("@/features/auth").then(module => ({ default: module.Layout }))
 );
 const UserPagesLayout = lazy(
-  () => import("@/components/layouts/UserPagesLayout"),
+  () => import("@/components/layouts/UserPagesLayout")
 );
 
 // Auth Pages
 const authPages = {
   signup: lazy(() => import("@/pages/SignUp")),
   signin: lazy(() => import("@/pages/SignIn")),
-  "reset-assword": lazy(() => import("@/pages/ResetPassword")),
+  "reset-password": lazy(() => import("@/pages/ResetPassword")),
+  "new-password": lazy(() => import("@/pages/NewPassword")),
   "email-verification": lazy(() => import("@/pages/EmailVerification")),
   "complete-setup": lazy(() => import("@/pages/Onboarding")),
   "complete-google-auth-setup": lazy(
-    () => import("@/pages/GoogleAuthCallback"),
+    () => import("@/pages/GoogleAuthCallback")
   ),
+  "complete-x-auth-setup": lazy(() => import("@/pages/XAuthCallback"))
 };
 
 // User Pages
@@ -33,7 +37,7 @@ const userPages = {
   dashboard: lazy(() => import("@/pages/Dashboard")),
   supporters: lazy(() => import("@/pages/Supporters")),
   payout: lazy(() => import("@/pages/Payout")),
-  settings: lazy(() => import("@/pages/SettingsPage")),
+  settings: lazy(() => import("@/pages/SettingsPage"))
 };
 
 const App = () => {
@@ -49,9 +53,15 @@ const App = () => {
                 key={path}
                 path={`/${path}`}
                 element={
-                  <PublicRoute>
-                    <Component />
-                  </PublicRoute>
+                  path === "complete-setup" ? (
+                    <ProtectedRoute>
+                      <Component />
+                    </ProtectedRoute>
+                  ) : (
+                    <PublicRoute>
+                      <Component />
+                    </PublicRoute>
+                  )
                 }
               />
             ))}
@@ -72,6 +82,9 @@ const App = () => {
           </Route>
 
           <Route path="/:username" element={<SupportPage />} />
+
+          <Route path="/legal/terms" element={<TermsOfService />} />
+          <Route path="/legal/privacy" element={<PrivacyPolicy />} />
         </Routes>
       </Suspense>
 

@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { UpdatePayoutDetailsDTO } from '../../dtos/payouts.dto';
+import { UpdatePayoutDetailsDTO } from './dtos/payouts.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
 import crypto from 'crypto';
 import { redis } from '../../common/config/redis.config';

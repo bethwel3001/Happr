@@ -1,4 +1,5 @@
 import { axios } from "@/lib";
+import type { ApiResponse, UserData } from "../types";
 
 export interface UserUpdate {
   id: string;
@@ -13,61 +14,27 @@ export interface UserUpdate {
   cover_photo?: string;
 }
 
-export interface UserData {
-  id: string;
-  email: string;
-  password: string;
-  username: string;
-  bio: string;
-  avatar: string;
-  cover_photo: string;
-  display_name: string;
-  website_link: string;
-  phone_number: string;
-  is_onboarded: boolean;
-  auth_provider: string;
-  is_verified: boolean;
-  bank_account: {
-    bank_name: string;
-    account_name: string;
-    account_number: string;
-  };
-  stats: {
-    total_amount_given: number;
-    total_amount_received: number;
-    total_donations_given: number;
-    total_donations_received: number;
-    total_supporters: number;
-  };
-  recent_donations: [];
-  created_at: string | Date;
-  updated_at: string | Date;
-}
-
-export interface PresignedUrlRequest {
+export interface SignatureRequest {
   file_size: number;
   content_type: string;
 }
 
-export interface PresignedUrlData {
-  presigned_url: string;
-  objectKey: string;
-  expiresIn: number;
-}
-
-interface SimpleApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
+export interface SignatureData {
+  signature: string;
+  timestamp: number;
+  folder: string;
+  public_id: string;
+  cloud_name: string;
+  api_key: string;
 }
 
 const updateUser = async (
   data: UserUpdate,
-): Promise<SimpleApiResponse<UserData>> => {
+): Promise<ApiResponse<UserData>> => {
   try {
     const { id, ...payload } = data;
 
-    const response = await axios.patch<SimpleApiResponse<UserData>>(
+    const response = await axios.patch<ApiResponse<UserData>>(
       `/api/v1/user/${id}`,
       payload,
     );
@@ -82,12 +49,12 @@ const updateUser = async (
   }
 };
 
-const getPresignedUrl = async (
-  data: PresignedUrlRequest,
-): Promise<SimpleApiResponse<PresignedUrlData>> => {
+const getSignature = async (
+  data: SignatureRequest,
+): Promise<ApiResponse<SignatureData>> => {
   try {
-    const response = await axios.post<SimpleApiResponse<PresignedUrlData>>(
-      "/api/v1/user/presigned-url",
+    const response = await axios.post<ApiResponse<SignatureData>>(
+      "/api/v1/user/signature",
       data,
     );
 
@@ -96,9 +63,10 @@ const getPresignedUrl = async (
     const errorMessage =
       err instanceof Error
         ? err.message
-        : "Something went wrong while getting presigned URL";
+        : "Something went wrong while getting signature";
     throw new Error(errorMessage);
   }
 };
 
-export { updateUser, getPresignedUrl };
+export { updateUser, getSignature };
+

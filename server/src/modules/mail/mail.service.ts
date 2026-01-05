@@ -48,7 +48,7 @@ export class MailService {
     });
   }
 
-  async sendPayoutOtp(
+  async sendOtp(
     email: string,
     otp: string,
     username: string,
@@ -58,6 +58,21 @@ export class MailService {
       username,
       otp,
       type: 'otp',
+    });
+  }
+
+  async sendEmailChangeEmail(
+    email: string,
+    username: string,
+    token: string,
+    expiry: string,
+  ): Promise<EmailResponse> {
+    return this.sendEmailRequest({
+      email,
+      username,
+      token,
+      expiry,
+      type: 'email-change',
     });
   }
 }

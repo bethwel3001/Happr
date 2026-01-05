@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import Button from "@/components/ui/Button";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import {
   StepAnimator,
   Welcome,
@@ -10,11 +12,30 @@ import {
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { user, isFetchingUser } = useAuth();
+
   const [currentStep, setCurrentStep] = useState(1);
-  const [submitCount, setSubmitCount] = useState(0); // <- changed
+  const [submitCount, setSubmitCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   const totalSteps = 3;
+
+  useEffect(() => {
+    if (isFetchingUser) return;
+
+    if (!user) {
+      navigate("/signin", { replace: true });
+      return;
+    }
+
+    if (user.is_onboarded) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, isFetchingUser, navigate]);
+
+  if (isFetchingUser) {
+    return <LoadingScreen />;
+  }
 
   return (
     <section
@@ -27,7 +48,7 @@ const Onboarding = () => {
 
       {currentStep === 2 && (
         <ProfileSetup
-          submitCount={submitCount} // <- use counter
+          submitCount={submitCount}
           onSubmitComplete={() => {
             setCurrentStep(prev => prev + 1);
           }}

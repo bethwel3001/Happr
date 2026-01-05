@@ -68,17 +68,8 @@ export class UpdateUserDTO {
   is_onboarded?: boolean;
 
   @ApiProperty({
-    description: 'User email address',
-    required: false,
-    example: 'john.doe@example.com',
-  })
-  @IsOptional()
-  @IsEmail()
-  email?: string;
-
-  @ApiProperty({
     type: 'string',
-    description: 'cloudfare r2 user avatar photo',
+    description: 'cloudinary user avatar photo',
     required: false,
   })
   @IsOptional()
@@ -86,7 +77,7 @@ export class UpdateUserDTO {
 
   @ApiProperty({
     type: 'string',
-    description: 'cloudfare r2 User cover photo string',
+    description: 'cloudinary User cover photo string',
     required: false,
   })
   @IsOptional()
@@ -237,7 +228,7 @@ export class GenerateOtpDTO {
   email: string;
 }
 
-export class generatePresignedUrlDTO {
+export class generateSignatureDTO {
   @ApiProperty({
     description: 'Size of the file to be uploaded in bytes',
     example: 5048576,
@@ -254,4 +245,14 @@ export class generatePresignedUrlDTO {
   @IsString()
   @IsNotEmpty()
   content_type: string;
+}
+
+export class ChangeEmailDTO {
+  @ApiProperty({
+    description: 'The new email address for the user',
+    example: 'new.email@example.com',
+  })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
 }

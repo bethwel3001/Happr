@@ -6,16 +6,17 @@ import {
   PayloadTooLargeException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { UpdateUserDTO, generatePresignedUrlDTO } from '../../dtos/user.dto';
+import { UpdateUserDTO, generateSignatureDTO } from './dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
-import { generateCryptographicOtp } from '../../common/utils/generate.token';
+import {
+  generateCryptographicOtp,
+  generateMailToken,
+} from '../../common/utils/generate.token';
 import { redis } from '../../common/config/redis.config';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import crypto from 'crypto';
-import s3 from '../../common/config/s3.config';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import cloudinary from '../../common/config/cloudinary.config';
 
 interface FixedCompleteUserDTO {
   id: string;
@@ -337,11 +338,9 @@ export class UserService {
       prismaUpdateData.website_link = dto.website_link;
     if (dto.is_onboarded !== undefined)
       prismaUpdateData.is_onboarded = dto.is_onboarded;
-    if (dto.email !== undefined) prismaUpdateData.email = dto.email;
-    if (dto.avatar !== undefined)
-      prismaUpdateData.avatar = `${process.env.R2_PUBLIC_URL}/${dto.avatar}`;
+    if (dto.avatar !== undefined) prismaUpdateData.avatar = dto.avatar;
     if (dto.cover_photo !== undefined)
-      prismaUpdateData.cover_photo = `${process.env.R2_PUBLIC_URL}/${dto.cover_photo}`;
+      prismaUpdateData.cover_photo = dto.cover_photo;
 
     const updatedUser = await this.prisma.user.update({
       where: { id },
@@ -380,7 +379,9 @@ export class UserService {
         updatedUser.bank_account.encrypted_bank_account,
       );
     }
-    console.log(updatedUser.avatar);
+
+    await redis.del(`user:${id}:details`);
+
     return {
       success: true,
       data: {
@@ -399,9 +400,7 @@ export class UserService {
     };
   }
 
-  async generatePresignedUrl(
-    dto: generatePresignedUrlDTO,
-  ): Promise<ApiResponseDTO> {
+  generateSignature(dto: generateSignatureDTO): ApiResponseDTO {
     const { file_size, content_type } = dto;
 
     if (!this.ALLOWED_IMAGE_TYPES.includes(content_type)) {
@@ -420,27 +419,32 @@ export class UserService {
       });
     }
 
-    const objectKey = `uploads/${crypto.randomUUID()}`;
-
-    const command = new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET_ID!,
-      Key: objectKey,
-      ContentType: content_type,
-      ContentLength: file_size,
-    });
+    const timestamp = Math.round(new Date().getTime() / 1000);
+    const folder = 'happr/uploads';
+    const public_id = `${folder}/${crypto.randomUUID()}`;
 
     try {
-      const presigned_url = await getSignedUrl(s3, command, {
-        expiresIn: this.URL_EXPIRATION_SECONDS,
-      });
+      const paramsToSign = {
+        timestamp,
+        folder,
+        public_id,
+      };
+
+      const signature = cloudinary.utils.api_sign_request(
+        paramsToSign,
+        process.env.CLOUDINARY_API_SECRET!,
+      );
 
       return {
         success: true,
-        message: 'Presigned URL created successfully',
+        message: 'Signature created successfully',
         data: {
-          presigned_url,
-          objectKey,
-          expiresIn: this.URL_EXPIRATION_SECONDS,
+          signature,
+          timestamp,
+          folder,
+          public_id,
+          cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+          api_key: process.env.CLOUDINARY_API_KEY,
         },
       };
     } catch (err: unknown) {
@@ -448,7 +452,7 @@ export class UserService {
         err instanceof Error ? err.message : 'Unknown error occurred';
       return {
         success: false,
-        message: `Failed to generate presigned URL: ${message}`,
+        message: `Failed to generate signature: ${message}`,
         data: null,
       };
     }
@@ -481,7 +485,14 @@ export class UserService {
         message: 'Your account is not verified yet, check your email.',
       });
 
+    await this.prisma.refreshToken.deleteMany({
+      where: { user_id: targetUserId },
+    });
+
+    await redis.del(`user:${targetUserId}:details`);
+
     await this.prisma.user.delete({ where: { id: targetUserId } });
+
     return {
       success: true,
       data: [],
@@ -518,6 +529,62 @@ export class UserService {
       success: true,
       data: { otpSent: true },
       message: 'OTP sent successfully.',
+    };
+  }
+
+  async changeEmail(
+    userId: string,
+    newEmail: string,
+  ): Promise<ApiResponseDTO> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new NotFoundException({
+        success: false,
+        data: [],
+        message: 'User does not exist',
+      });
+    }
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: newEmail },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException({
+        success: false,
+        data: [],
+        message: 'Email is already taken by another user.',
+      });
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        email: newEmail,
+        is_verified: false,
+      },
+    });
+
+    const { email_token } = generateMailToken(user.id, user.username, newEmail);
+
+    await this.emailQueue.add('send-verification', {
+      type: 'email-change',
+      data: {
+        email: newEmail,
+        username: user.username,
+        token: email_token,
+        expiry: '4 hours',
+      },
+    });
+
+    await redis.del(`user:${userId}:details`);
+
+    return {
+      success: true,
+      data: [],
+      message: 'Email updated successfully. Please verify your new email.',
     };
   }
 }

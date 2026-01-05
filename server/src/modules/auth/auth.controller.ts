@@ -18,7 +18,7 @@ import {
   ResetPasswordDTO,
   UsernameAvailabilityDTO,
   ForgotEmailPasswordDTO,
-} from '../../dtos/auth.module.dto';
+} from './dtos/auth.dto';
 import { AuthService } from './auth.service';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
 import {
@@ -33,7 +33,7 @@ import type { AuthenticatedRequest } from '../../common/guards/auth.guard';
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Get('username')
   @HttpCode(200)
@@ -212,7 +212,7 @@ export class AuthController {
     try {
       if (!code) {
         return res.redirect(
-          `${process.env.FRONTEND_DOMAIN}/google/callback?status=error`,
+          `${process.env.FRONTEND_DOMAIN}/complete-google-auth-setup?status=error`,
         );
       }
 
@@ -243,6 +243,67 @@ export class AuthController {
     }
   }
 
+  @Get('x-auth')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Get X (Twitter) OAuth URL',
+    description:
+      'Returns an X authentication URL. Use this URL on the frontend to temporarily redirect the user to X login.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'The X OAuth URL as JSON',
+  })
+  xAuth(): Promise<ApiResponseDTO> {
+    return this.authService.generateXAuthUri().then((uri) => ({
+      success: true,
+      message: 'X OAuth URL generated successfully',
+      data: {
+        uri,
+      },
+    }));
+  }
+
+  @Get('x/callback')
+  async handleXAuthCallback(
+    @Query('code') code: string,
+    @Query('state') state: string,
+    @Res() res: Response,
+  ) {
+    try {
+      if (!code || !state) {
+        return res.redirect(
+          `${process.env.FRONTEND_DOMAIN}/complete-x-auth-setup?status=error`,
+        );
+      }
+
+      const { access_token, refresh_token } =
+        await this.authService.xAuthCallback(code, state);
+
+      res.cookie('access_token', access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 30 * 60 * 1000,
+      });
+
+      res.cookie('refresh_token', refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      return res.redirect(
+        `${process.env.FRONTEND_DOMAIN}/complete-x-auth-setup?status=success`,
+      );
+    } catch {
+      return res.redirect(
+        `${process.env.FRONTEND_DOMAIN}/complete-x-auth-setup?status=error`,
+      );
+    }
+  }
+
   @Post('verify-forgot-email-password-otp')
   @HttpCode(200)
   @ApiOperation({ summary: 'Verify OTP for forgot password' })
@@ -252,8 +313,16 @@ export class AuthController {
       'OTP verified. Access token generated. Use token to reset password.',
     type: ApiResponseDTO,
   })
-  async forgotPassword(@Body() dto: ForgotEmailPasswordDTO) {
-    return this.authService.verifyForgotPassword(dto);
+  async forgotPassword(@Res({ passthrough: true }) res: Response, @Body() dto: ForgotEmailPasswordDTO) {
+    const result = await this.authService.verifyForgotPassword(dto);
+    const accessToken = result.data.accessToken
+
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 30 * 60 * 1000,
+    });
   }
 
   @Patch('reset-password')

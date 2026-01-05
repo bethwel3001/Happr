@@ -7,7 +7,7 @@ const signup = async ({
   password
 }: SignupInputs): Promise<SignupResponse> => {
   try {
-    const response = await axios.post("/api/v1/auth/register", {
+    const response = await axios.post<SignupResponse>("/api/v1/auth/register", {
       email,
       username,
       password
