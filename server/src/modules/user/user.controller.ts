@@ -29,7 +29,7 @@ import {
   PaginationQueryDTO,
 } from './dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
-import { CompleteUserDatabaseDTO } from './dtos/user.dto';
+import { CompleteUserDatabaseDTO, PublicUserProfileDTO } from './dtos/user.dto';
 import type { AuthenticatedRequest } from '../../common/guards/auth.guard';
 
 @ApiTags('User Management')
@@ -169,5 +169,41 @@ export class UserController {
     @Req() req: AuthenticatedRequest,
   ): Promise<ApiResponseDTO> {
     return this.userService.deleteUserAccount(req.user._id, id);
+  }
+
+  @Get(':username/donations')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Get public user donations',
+    description: 'Fetch recent donations for a user by username.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Public donations list',
+    type: [DonationDetailsDTO],
+  })
+  async getPublicDonations(
+    @Param('username') username: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ): Promise<ApiResponseDTO<DonationDetailsDTO[]>> {
+    return this.userService.getPublicDonations(username, Number(page), Number(limit));
+  }
+
+  @Get(':username')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Get public user profile',
+    description: 'Fetch public profile details of a user by username.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Public user profile',
+    type: PublicUserProfileDTO,
+  })
+  async getPublicProfile(
+    @Param('username') username: string,
+  ): Promise<ApiResponseDTO<PublicUserProfileDTO>> {
+    return this.userService.getPublicProfile(username);
   }
 }

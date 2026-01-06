@@ -12,6 +12,7 @@ interface UserData {
   is_onboarded: boolean;
   auth_provider: string;
   is_verified: boolean;
+  smile_price?: number;
   bank_account: {
     bank_id: string;
     bank_code: string;

@@ -1,26 +1,11 @@
 import DisplaySupporter from "./DisplaySupporter";
-import { useAuth } from "@/hooks/useAuth";
-import { getRecentDonations } from "@/features/dashboard/api/getRecentDonations";
-import { useEffect, useState } from "react";
-import type { DonationDetails } from "@/types";
+import { usePublicDonations } from "../hooks/usePublicDonations";
+import type { PublicUserProfile } from "../types";
 
-const RecentSupportersSection = () => {
-  const { user } = useAuth();
-  const [donations, setDonations] = useState<DonationDetails[]>([]);
+const RecentSupportersSection = ({ user }: { user: PublicUserProfile }) => {
+  const { data: response } = usePublicDonations(user.username);
+  const donations = response?.data || [];
 
-  useEffect(() => {
-    const fetchDonations = async () => {
-      try {
-        const response = await getRecentDonations();
-        if (response.success) {
-          setDonations(response.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch recent donations", error);
-      }
-    };
-    fetchDonations();
-  }, []);
 
   return (
     <section
@@ -32,16 +17,16 @@ const RecentSupportersSection = () => {
       {donations.length > 0 ? (
         <div className="w-full flex flex-col items-center gap-2">
           {donations.map((supporter) => (
-            // @ts-ignore - types are compatible
             <DisplaySupporter key={supporter.id} supporter={supporter} />
           ))}
         </div>
       ) : (
         <div className="w-full flex flex-col items-center gap-3 p-4 bg-accent text-primary text-center rounded-md">
-          <p> Be the first to support ${user?.username} </p>
+          <p> Be the first to support {user.display_name} </p>
         </div>
       )}
     </section>
   );
 };
 export default RecentSupportersSection;
+

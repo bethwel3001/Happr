@@ -21,6 +21,7 @@ model User {
   is_onboarded    Boolean        @default(false)
   auth_provider   String         @default("local")
   is_verified     Boolean        @default(false)
+  smile_price     Int            @default(200)
   created_at      DateTime       @default(now())
   updated_at      DateTime       @updatedAt
 

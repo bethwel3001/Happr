@@ -11,6 +11,7 @@ import {
   generateSignatureDTO,
   UserStatsDTO,
   DonationDetailsDTO,
+  PublicUserProfileDTO,
 } from './dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
 import {
@@ -93,6 +94,7 @@ type PrismaUserUpdate = Partial<{
   email: string;
   avatar: string;
   cover_photo: string;
+  smile_price: number;
 }>;
 
 @Injectable()
@@ -190,7 +192,9 @@ export class UserService {
         cover_photo: true,
         phone_number: true,
         auth_provider: true,
+        auth_provider: true,
         is_verified: true,
+        smile_price: true,
         created_at: true,
         updated_at: true,
         bank_account: { select: { encrypted_bank_account: true } },
@@ -367,6 +371,8 @@ export class UserService {
     if (dto.avatar !== undefined) prismaUpdateData.avatar = dto.avatar;
     if (dto.cover_photo !== undefined)
       prismaUpdateData.cover_photo = dto.cover_photo;
+    if (dto.smile_price !== undefined)
+      prismaUpdateData.smile_price = dto.smile_price;
 
     const updatedUser = await this.prisma.user.update({
       where: { id },
@@ -382,6 +388,7 @@ export class UserService {
         is_onboarded: true,
         auth_provider: true,
         is_verified: true,
+        smile_price: true,
         avatar: true,
         cover_photo: true,
         created_at: true,
@@ -604,5 +611,93 @@ export class UserService {
       data: [],
       message: 'Email updated successfully. Please verify your new email.',
     };
+  }
+
+  async getPublicDonations(
+    username: string,
+    page = 1,
+    limit = 10,
+  ): Promise<ApiResponseDTO<DonationDetailsDTO[]>> {
+    const user = await this.prisma.user.findUnique({
+      where: { username },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException({
+        success: false,
+        message: 'User does not exist',
+        data: null,
+      });
+    }
+
+    return this.getRecentDonations(user.id, page, limit);
+  }
+
+  async getPublicProfile(
+    username: string,
+  ): Promise<ApiResponseDTO<PublicUserProfileDTO>> {
+    const cacheKey = `user:public:${username}`;
+    const cached = await redis.get(cacheKey);
+
+    if (cached) {
+      return JSON.parse(cached) as ApiResponseDTO<PublicUserProfileDTO>;
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { username },
+      select: {
+        id: true,
+        username: true,
+        display_name: true,
+        bio: true,
+        avatar: true,
+        cover_photo: true,
+        is_verified: true,
+        smile_price: true,
+        website_link: true,
+        created_at: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException({
+        success: false,
+        data: [],
+        message: 'User does not exist',
+      });
+    }
+
+
+    const statsResponse = await this.getUserStats(user.id);
+    const stats = statsResponse.data as UserStatsDTO;
+
+
+    const donationsResponse = await this.getRecentDonations(user.id, 1, 10);
+    const recent_donations = donationsResponse.data as DonationDetailsDTO[];
+
+    const publicProfile: PublicUserProfileDTO = {
+      username: user.username,
+      display_name: user.display_name,
+      bio: user.bio,
+      avatar: user.avatar,
+      cover_photo: user.cover_photo,
+      is_verified: user.is_verified,
+      smile_price: user.smile_price,
+      website_link: user.website_link,
+      created_at: user.created_at,
+      stats,
+      recent_donations,
+    };
+
+    const response = {
+      success: true,
+      data: publicProfile,
+      message: 'Public profile fetched successfully.',
+    };
+
+    await redis.set(cacheKey, JSON.stringify(response), 'EX', 120);
+
+    return response;
   }
 }

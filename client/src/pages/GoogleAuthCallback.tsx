@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 type AuthStatus = "success" | "error";
@@ -7,16 +7,13 @@ const GoogleAuthCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const status = searchParams.get("status") as AuthStatus | null;
+  const username = searchParams.get("username");
+  const isOnboarded = searchParams.get("is_onboarded") === "true";
 
   const isSuccess = status === "success";
   const isError = status === "error";
 
-  const [countdown, setCountdown] = useState(5);
-
-  const redirectPath = useMemo(
-    () => (isSuccess ? "/complete-setup" : "/signup"),
-    [isSuccess],
-  );
+  const [countdown, setCountdown] = useState(1);
 
   useEffect(() => {
     if (!status) {
@@ -29,14 +26,22 @@ const GoogleAuthCallback = () => {
     }, 1000);
 
     const timeout = setTimeout(() => {
-      navigate(redirectPath, { replace: true });
-    }, 5000);
+      if (isSuccess) {
+        if (isOnboarded) {
+          navigate("/dashboard", { replace: true });
+        } else {
+          navigate("/complete-setup", { replace: true });
+        }
+      } else {
+        navigate("/signin", { replace: true });
+      }
+    }, 1000);
 
     return () => {
       clearInterval(interval);
       clearTimeout(timeout);
     };
-  }, [status, navigate, redirectPath]);
+  }, [status, isSuccess, isOnboarded, navigate]);
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-background px-4">
@@ -148,21 +153,19 @@ const GoogleAuthCallback = () => {
         )}
 
         <h1 className="text-2xl font-semibold">
-          {isSuccess && "Google sign-in successful"}
+          {isSuccess && `Welcome ${username || ''}!`}
           {isError && "Google sign-in failed"}
         </h1>
 
         <p className="text-muted-foreground">
-          {isSuccess && "Redirecting you to complete setup"}
+          {isSuccess && "Redirecting..."}
           {isError && "Redirecting back to sign in"}
-          {status && ` in ${countdown}s`}
         </p>
 
         <div className="w-full h-1 bg-muted rounded overflow-hidden">
           <div
-            className={`h-full transition-all duration-[5000ms] ${
-              isSuccess ? "bg-green-500" : "bg-red-500"
-            }`}
+            className={`h-full transition-all duration-[1000ms] ${isSuccess ? "bg-green-500" : "bg-red-500"
+              }`}
             style={{ width: "100%" }}
           />
         </div>
@@ -172,3 +175,4 @@ const GoogleAuthCallback = () => {
 };
 
 export default GoogleAuthCallback;
+

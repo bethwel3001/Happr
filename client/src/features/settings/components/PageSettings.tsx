@@ -14,6 +14,7 @@ const PageSettings = () => {
   const [displayName, setDisplayName] = useState(user?.display_name || "");
   const [about, setAbout] = useState(user?.bio || "");
   const [userLink, setUserLink] = useState(user?.website_link || "");
+  const [smilePrice, setSmilePrice] = useState<number | string>(user?.smile_price || 200);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -89,11 +90,19 @@ const PageSettings = () => {
         coverUrl = await uploadFile(coverFile);
       }
 
+      const finalSmilePrice = Number(smilePrice);
+      if (isNaN(finalSmilePrice) || finalSmilePrice < 100) {
+        toast.error("Please enter a valid smile price (minimum 100)");
+        setIsSaving(false);
+        return;
+      }
+
       const response = await updateUser({
         id: user.id,
         display_name: displayName,
         bio: about,
         website_link: userLink,
+        smile_price: finalSmilePrice,
         ...(avatarUrl && { avatar: avatarUrl }),
         ...(coverUrl && { cover_photo: coverUrl })
       });
@@ -181,6 +190,20 @@ const PageSettings = () => {
             id="user-link-input"
             value={userLink}
             onChange={e => setUserLink(e.target.value)}
+          />
+        </div>
+
+        <div className="w-full flex flex-col gap-4">
+          <label htmlFor="smile-price-input">
+            <h3 className="text-xl">Smile Price (₦)</h3>
+            <p className="text-sm text-muted-foreground">Set the price for one smile (donation unit)</p>
+          </label>
+          <Input
+            type="number"
+            min="100"
+            id="smile-price-input"
+            value={smilePrice}
+            onChange={e => setSmilePrice(Number(e.target.value))}
           />
         </div>
 
