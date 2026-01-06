@@ -10,47 +10,73 @@ const Navbar = () => {
   const { user } = useAuth();
 
   return (
-    <div className="w-full flex flex-col items-center">
-      <nav
-        className={`w-full flex items-center justify-between py-4 ${
-          !isMobile ? "border-b border-border" : ""
-        }`}
-      >
-        <div className="flex items-center gap-2">
-          {isMobile ? (
-            <div
-              onClick={() => setIsMenuOpened(!isMenuOpened)}
-              className="p-2 bg-card rounded-sm cursor-pointer"
+    <header className="w-full max-w-full overflow-x-hidden">
+      <nav className="w-full flex items-center justify-between px-4 py-4 border-b border-border/60 bg-background">
+        {/* Left: Menu + Brand */}
+        <div className="flex items-center gap-3">
+          {isMobile && (
+            <button
+              aria-label="Open menu"
+              onClick={() => setIsMenuOpened((v) => !v)}
+              className="
+                p-2 rounded-md bg-card
+                cursor-pointer
+                transition
+                hover:bg-muted
+                active:scale-95
+                focus:outline-none
+                focus:ring-2 focus:ring-primary/50
+              "
             >
-              <Menu />
-            </div>
-          ) : (
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
+
+          {/* Brand (consistent across breakpoints) */}
+          <div className="flex items-center gap-2 cursor-pointer select-none">
             <img
               src="/icons/happr-icon.jpg"
-              width="32"
-              height="32"
+              width={32}
+              height={32}
               className="rounded-full"
               alt="Happr Logo"
             />
-          )}
-          <h1 className="text-primary text-2xl">Happr</h1>
+            <h1 className="text-primary text-2xl font-semibold tracking-tight">
+              Happr
+            </h1>
+          </div>
         </div>
 
-        <img
-          src={
-            user?.avatar ||
-            `https://ui-avatars.com/api/?name=${user?.username}&background=random&bold=true&size=128.png`
-          }
-          alt="Avatar"
-          loading="eager"
-          className="w-10 h-10 bg-card object-cover border border-border rounded-full"
-        />
+        {/* Right: Avatar (interactive) */}
+        <button
+          aria-label="Open profile menu"
+          className="
+            rounded-full
+            cursor-pointer
+            transition
+            hover:scale-105
+            active:scale-95
+            focus:outline-none
+            focus:ring-2 focus:ring-primary/50
+          "
+        >
+          <img
+            src={
+              user?.avatar ||
+              `https://ui-avatars.com/api/?name=${user?.username}&background=random&bold=true&size=128.png`
+            }
+            alt="User avatar"
+            loading="eager"
+            className="w-10 h-10 object-cover border border-border rounded-full bg-card"
+          />
+        </button>
       </nav>
 
+      {/* Mobile Sidebar */}
       {isMobile && isMenuOpened && (
         <Sidebar setIsMenuOpened={setIsMenuOpened} />
       )}
-    </div>
+    </header>
   );
 };
 
