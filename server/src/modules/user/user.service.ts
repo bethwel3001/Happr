@@ -192,7 +192,6 @@ export class UserService {
         cover_photo: true,
         phone_number: true,
         auth_provider: true,
-        auth_provider: true,
         is_verified: true,
         smile_price: true,
         created_at: true,
