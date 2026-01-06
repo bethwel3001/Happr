@@ -400,6 +400,13 @@ export class PublicUserProfileDTO {
   website_link?: string | null;
 
   @ApiProperty({
+    description: 'Price per smile (donation unit) in Naira',
+    required: false,
+    example: 500,
+  })
+  smile_price?: number | null;
+
+  @ApiProperty({
     description: 'Date when the user was created',
     example: '2024-01-01T00:00:00.000Z',
   })
