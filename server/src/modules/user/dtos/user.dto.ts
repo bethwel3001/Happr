@@ -83,6 +83,15 @@ export class UpdateUserDTO {
   })
   @IsOptional()
   cover_photo?: string;
+  @ApiProperty({
+    description: 'Price per smile (donation unit) in Naira',
+    required: false,
+    example: 500,
+  })
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  smile_price?: number;
 }
 
 export class CompleteUserDatabaseDTO {
@@ -328,6 +337,7 @@ export class DonationDetailsDTO {
   supporter?: SupporterDTO;
 }
 
+
 export class PaginationQueryDTO {
   @ApiProperty({ required: false, default: 1 })
   @IsOptional()
@@ -340,4 +350,72 @@ export class PaginationQueryDTO {
   @IsNumber()
   @Type(() => Number)
   limit?: number = 10;
+}
+
+export class PublicUserProfileDTO {
+  @ApiProperty({
+    description: 'Unique username of the user',
+    example: 'john_doe',
+  })
+  username: string;
+
+  @ApiProperty({
+    description: 'Display name of the user',
+    required: false,
+    example: 'John Doe',
+  })
+  display_name?: string | null;
+
+  @ApiProperty({
+    description: 'Short bio or description about the user',
+    required: false,
+    example: 'Digital creator passionate about tech and design',
+  })
+  bio?: string | null;
+
+  @ApiProperty({
+    description: 'Avatar image URL',
+    required: false,
+    example: 'https://res.cloudinary.com/...',
+  })
+  avatar?: string | null;
+
+  @ApiProperty({
+    description: 'Cover photo URL',
+    required: false,
+    example: 'https://res.cloudinary.com/...',
+  })
+  cover_photo?: string | null;
+
+  @ApiProperty({
+    description: 'Indicates if the user is verified',
+    example: true,
+  })
+  is_verified: boolean;
+
+  @ApiProperty({
+    description: 'User website link',
+    required: false,
+  })
+  website_link?: string | null;
+
+  @ApiProperty({
+    description: 'Date when the user was created',
+    example: '2024-01-01T00:00:00.000Z',
+  })
+  created_at: Date;
+
+  @ApiProperty({
+    description: 'User statistics',
+    required: false,
+    type: UserStatsDTO,
+  })
+  stats?: UserStatsDTO;
+
+  @ApiProperty({
+    description: 'Recent donations received by the user',
+    required: false,
+    type: [DonationDetailsDTO],
+  })
+  recent_donations?: DonationDetailsDTO[];
 }

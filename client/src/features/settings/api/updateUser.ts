@@ -12,6 +12,7 @@ export interface UserUpdate {
   is_onboarded?: boolean;
   avatar?: string;
   cover_photo?: string;
+  smile_price?: number;
 }
 
 export interface SignatureRequest {

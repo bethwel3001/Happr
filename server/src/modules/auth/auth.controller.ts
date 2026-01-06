@@ -222,7 +222,7 @@ export class AuthController {
         );
       }
 
-      const { access_token, refresh_token } =
+      const { access_token, refresh_token, user } =
         await this.authService.googleAuthCallback(code);
 
       res.cookie('access_token', access_token, {
@@ -242,7 +242,7 @@ export class AuthController {
       });
 
       return res.redirect(
-        `${process.env.FRONTEND_DOMAIN}/complete-google-auth-setup?status=success`,
+        `${process.env.FRONTEND_DOMAIN}/complete-google-auth-setup?status=success&username=${user.username}&is_onboarded=${user.is_onboarded}`,
       );
     } catch {
       return res.redirect(
@@ -285,7 +285,7 @@ export class AuthController {
         );
       }
 
-      const { access_token, refresh_token } =
+      const { access_token, refresh_token, user } =
         await this.authService.xAuthCallback(code, state);
 
       res.cookie('access_token', access_token, {
@@ -305,7 +305,7 @@ export class AuthController {
       });
 
       return res.redirect(
-        `${process.env.FRONTEND_DOMAIN}/complete-x-auth-setup?status=success`,
+        `${process.env.FRONTEND_DOMAIN}/complete-x-auth-setup?status=success&username=${user.username}&is_onboarded=${user.is_onboarded}`,
       );
     } catch {
       return res.redirect(

@@ -7,18 +7,29 @@ import {
   AboutUserSection,
   TipUserSection,
   RecentSupportersSection,
-  CtaSection
+  CtaSection,
+  usePublicProfile
 } from "@/features/support";
+import LoadingScreen from "@/components/ui/LoadingScreen";
+import ErrorBox from "@/components/ui/ErrorBox";
 
 const SupportPage = () => {
   const params = useParams();
   const [openShareModal, setOpenShareModal] = useState<boolean>(false);
 
-  if (!params.username) return <h1> No user </h1>;
+  const { data: response, isLoading, error } = usePublicProfile(params.username);
+  const user = response?.data;
+
+  if (isLoading) return <LoadingScreen />;
+  if (error || !user) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <ErrorBox title="Error" message={error?.message || "User not found"} />
+    </div>
+  );
 
   return (
     <article
-      aria-label={`${params.username}'s Happr Page`}
+      aria-label={`${user.display_name}'s Happr Page`}
       className="w-full min-h-screen flex flex-col bg-card font-openSans text-card-foreground pb-6"
     >
       <header>
@@ -28,14 +39,14 @@ const SupportPage = () => {
       <main className="w-full flex flex-col items-center gap-3">
         {openShareModal && (
           <SharePagePopup
-            userInfo={{ username: params.username, fullName: "Charming Dc" }}
+            userInfo={{ username: user.username, fullName: user.display_name! }}
             setOpenShareModal={setOpenShareModal}
           />
         )}
-        <UserMetaInfo setOpenShareModal={setOpenShareModal} />
-        <AboutUserSection />
-        <TipUserSection />
-        <RecentSupportersSection />
+        <UserMetaInfo user={user} setOpenShareModal={setOpenShareModal} />
+        <AboutUserSection user={user} />
+        <TipUserSection user={user} />
+        <RecentSupportersSection user={user} />
         <CtaSection />
       </main>
 
@@ -46,3 +57,4 @@ const SupportPage = () => {
   );
 };
 export default SupportPage;
+

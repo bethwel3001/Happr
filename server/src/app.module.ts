@@ -6,6 +6,7 @@ import { MailModule } from './modules/mail/mail.module';
 import { BullModule } from '@nestjs/bullmq';
 import { UserModule } from './modules/user/user.module';
 import { PayoutsModule } from './modules/payouts/payouts.module';
+import { PaymentModule } from './modules/payment/payment.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 
@@ -32,6 +33,7 @@ import { APP_GUARD } from '@nestjs/core';
     MailModule,
     UserModule,
     PayoutsModule,
+    PaymentModule,
   ],
   providers: [
     PrismaService,
@@ -41,4 +43,4 @@ import { APP_GUARD } from '@nestjs/core';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

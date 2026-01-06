@@ -17,3 +17,6 @@ export {
   DisplaySupporter,
   CtaSection
 };
+
+export * from "./hooks/usePublicProfile";
+export * from "./hooks/usePublicDonations";
