@@ -89,6 +89,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 30 * 60 * 1000,
+      path: '/',
     });
 
     res.cookie('refresh_token', refresh_token, {
@@ -96,6 +97,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
     });
 
     return {
@@ -128,6 +130,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 30 * 60 * 1000,
+      path: '/',
     });
 
     res.cookie('refresh_token', refresh_token, {
@@ -135,6 +138,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
     });
 
     return {
@@ -167,12 +171,14 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/',
     });
 
     res.clearCookie('refresh_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/',
     });
 
     return {
@@ -224,6 +230,7 @@ export class AuthController {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 30 * 60 * 1000,
+        path: '/',
       });
 
       res.cookie('refresh_token', refresh_token, {
@@ -231,6 +238,7 @@ export class AuthController {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/',
       });
 
       return res.redirect(
@@ -285,6 +293,7 @@ export class AuthController {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 30 * 60 * 1000,
+        path: '/',
       });
 
       res.cookie('refresh_token', refresh_token, {
@@ -292,6 +301,7 @@ export class AuthController {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/',
       });
 
       return res.redirect(
