@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { formatNaira } from "@/utils/formatters";
-import { useAuth } from "@/hooks/useAuth";
+import { getUserStats } from "../api/getUserStats";
+import type { UserStats as UserStatsData } from "@/types";
+
 const durationFilters: ("all-time" | "30-days" | "90-days")[] = [
   "all-time",
   "30-days",
@@ -14,7 +16,28 @@ const UserStats = () => {
     "all-time" | "30-days" | "90-days"
   >("all-time");
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-  const { user } = useAuth();
+  const [stats, setStats] = useState<UserStatsData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await getUserStats();
+        if (response.success && response.data) {
+          setStats(response.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user stats", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return <div className="p-4 border border-border rounded-xl animate-pulse h-40 w-full bg-accent/20"></div>;
+  }
 
   return (
     <section className="relative w-full flex flex-col gap-4 p-4 border border-border rounded-xl">
@@ -34,13 +57,13 @@ const UserStats = () => {
         <div className="py-2 px-3 border border-border rounded-md">
           <p>Earnings</p>
           <h3 className="text-2xl mt-1">
-            {formatNaira(user?.stats.total_amount_given ?? 0)}
+            {formatNaira(stats?.total_amount_received ?? 0)}
           </h3>
         </div>
 
         <div className="py-2 px-3 border border-border rounded-md">
           <p>Supporters</p>
-          <h3 className="text-2xl mt-1">{user?.recent_donations.length}</h3>
+          <h3 className="text-2xl mt-1">{stats?.total_supporters ?? 0}</h3>
         </div>
       </div>
 

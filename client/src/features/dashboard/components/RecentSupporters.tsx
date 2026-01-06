@@ -4,11 +4,34 @@ import {
   DisplaySupporters,
   NoSupporters,
 } from "@/features/supporters/components";
-import { useAuth } from "@/hooks/useAuth";
+import { getRecentDonations } from "../api/getRecentDonations";
+import { useEffect, useState } from "react";
+import type { DonationDetails } from "@/types";
 
 const RecentSupporters = () => {
-  const { user } = useAuth();
-  if (!user) return null;
+  const [donations, setDonations] = useState<DonationDetails[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDonations = async () => {
+      try {
+        const response = await getRecentDonations();
+        if (response.success) {
+          setDonations(response.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch recent donations", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDonations();
+  }, []);
+
+  if (loading) {
+    return <div className="p-4 border border-border rounded-xl animate-pulse h-40 w-full bg-accent/20"></div>;
+  }
+
   return (
     <section className="relative w-full flex flex-col gap-4 p-4 border border-border rounded-xl">
       <div className="w-full flex items-center justify-between gap-3 mb-4">
@@ -25,10 +48,10 @@ const RecentSupporters = () => {
         aria-label="recent-supporters"
         className="w-full block hide-scrollbar overflow-x-auto overflow-y-visible"
       >
-        {user?.recent_donations && user.recent_donations.length === 0 ? (
+        {donations.length === 0 ? (
           <NoSupporters />
         ) : (
-          <DisplaySupporters supporters={user.recent_donations} />
+          <DisplaySupporters supporters={donations} />
         )}
       </div>
     </section>

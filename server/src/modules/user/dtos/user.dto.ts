@@ -11,6 +11,7 @@ import {
   IsNumber,
   IsPositive,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpdateUserDTO {
   @ApiProperty({
@@ -259,4 +260,84 @@ export class ChangeEmailDTO {
   @IsEmail()
   @IsNotEmpty()
   email: string;
+}
+
+export class UserStatsDTO {
+  @ApiProperty({ example: 50 })
+  total_donations_received: number;
+
+  @ApiProperty({ example: 20 })
+  total_donations_given: number;
+
+  @ApiProperty({ example: 50000 })
+  total_amount_received: number;
+
+  @ApiProperty({ example: 10000 })
+  total_amount_given: number;
+
+  @ApiProperty({ example: 15 })
+  total_supporters: number;
+}
+
+export class SupporterDTO {
+  @ApiProperty({ example: 'uuid-string' })
+  id: string;
+
+  @ApiProperty({ example: 'johndoe' })
+  username: string;
+
+  @ApiProperty({ example: 'avatar-url' })
+  avatar?: string;
+
+  @ApiProperty({ example: 'cover-url' })
+  cover_photo?: string;
+}
+
+export class DonationDetailsDTO {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  amount: number;
+
+  @ApiProperty({ required: false })
+  message?: string;
+
+  @ApiProperty()
+  created_at: Date;
+
+  @ApiProperty()
+  is_guest: boolean;
+
+  @ApiProperty()
+  smile_count: number;
+
+  @ApiProperty()
+  smile_price: number;
+
+  @ApiProperty()
+  is_anonymous: boolean;
+
+  @ApiProperty({ required: false })
+  supporter_name?: string;
+
+  @ApiProperty({ required: false })
+  supporter_xhandle?: string;
+
+  @ApiProperty({ type: SupporterDTO, required: false })
+  supporter?: SupporterDTO;
+}
+
+export class PaginationQueryDTO {
+  @ApiProperty({ required: false, default: 1 })
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  page?: number = 1;
+
+  @ApiProperty({ required: false, default: 10 })
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  limit?: number = 10;
 }
