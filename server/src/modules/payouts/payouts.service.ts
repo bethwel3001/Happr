@@ -147,6 +147,7 @@ export class PayoutsService {
     }
 
     await redis.del(`otp:${userId}`);
+    await redis.del(`user:${userId}:details`);
 
     return {
       success: true,

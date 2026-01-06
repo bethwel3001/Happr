@@ -7,6 +7,7 @@ import {
   Patch,
   Param,
   Req,
+  Query,
   UseGuards,
   HttpCode,
 } from '@nestjs/common';
@@ -23,6 +24,9 @@ import {
   GenerateOtpDTO,
   generateSignatureDTO,
   ChangeEmailDTO,
+  UserStatsDTO,
+  DonationDetailsDTO,
+  PaginationQueryDTO,
 } from './dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
 import { CompleteUserDatabaseDTO } from './dtos/user.dto';
@@ -50,6 +54,45 @@ export class UserController {
     @Req() req: AuthenticatedRequest,
   ): Promise<ApiResponseDTO<any>> {
     return this.userService.getUserDetails(req.user._id);
+  }
+
+  @Get('stats')
+  @ApiBearerAuth()
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Get authenticated user stats',
+    description: 'Fetch donation statistics for the currently logged-in user.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User statistics',
+    type: UserStatsDTO,
+  })
+  @UseGuards(AuthGuard)
+  async getStats(
+    @Req() req: AuthenticatedRequest,
+  ): Promise<ApiResponseDTO<UserStatsDTO>> {
+    return this.userService.getUserStats(req.user._id);
+  }
+
+  @Get('donations')
+  @ApiBearerAuth()
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Get recent donations',
+    description: 'Fetch paginated recent donations for the currently logged-in user.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Recent donations',
+    type: [DonationDetailsDTO],
+  })
+  @UseGuards(AuthGuard)
+  async getDonations(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: PaginationQueryDTO,
+  ): Promise<ApiResponseDTO<DonationDetailsDTO[]>> {
+    return this.userService.getRecentDonations(req.user._id, query.page, query.limit);
   }
 
   @Post('generate-otp')

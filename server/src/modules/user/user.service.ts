@@ -6,7 +6,12 @@ import {
   PayloadTooLargeException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { UpdateUserDTO, generateSignatureDTO } from './dtos/user.dto';
+import {
+  UpdateUserDTO,
+  generateSignatureDTO,
+  UserStatsDTO,
+  DonationDetailsDTO,
+} from './dtos/user.dto';
 import { ApiResponseDTO } from '../../dtos/api.response.dto';
 import {
   generateCryptographicOtp,
@@ -42,15 +47,6 @@ interface FixedCompleteUserDTO {
     last_updated: string;
     longcode?: string | null;
   } | null;
-
-  stats: {
-    total_amount_given: number;
-    total_amount_received: number;
-    total_donations_given: number;
-    total_donations_received: number;
-    total_supporters: number;
-  };
-  recent_donations: DonationDetails[];
 }
 
 interface UserStats {
@@ -103,7 +99,6 @@ type PrismaUserUpdate = Partial<{
 export class UserService {
   private readonly encryptionKey: Buffer;
   private readonly MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
-  private readonly URL_EXPIRATION_SECONDS = 5 * 60;
   private readonly ALLOWED_IMAGE_TYPES = [
     'image/png',
     'image/jpeg',
@@ -164,12 +159,12 @@ export class UserService {
 
   async getUserDetails(
     _id: string,
-  ): Promise<ApiResponseDTO<UserDetailsResponse>> {
+  ): Promise<ApiResponseDTO<FixedCompleteUserDTO>> {
     const cacheKey = `user:${_id}:details`;
     const cached = await redis.get(cacheKey);
 
     if (cached) {
-      const parsed = JSON.parse(cached) as ApiResponseDTO<UserDetailsResponse>;
+      const parsed = JSON.parse(cached) as ApiResponseDTO<FixedCompleteUserDTO>;
       if (!parsed.data) {
         throw new NotFoundException({
           success: false,
@@ -199,12 +194,6 @@ export class UserService {
         created_at: true,
         updated_at: true,
         bank_account: { select: { encrypted_bank_account: true } },
-        _count: {
-          select: {
-            donations: true,
-            supports: true,
-          },
-        },
       },
     });
 
@@ -239,72 +228,109 @@ export class UserService {
       );
     }
 
-    const [totalReceived, totalGiven, uniqueSupporters, recentDonations] =
-      await Promise.all([
-        this.prisma.donation.aggregate({
-          _sum: { amount: true },
-          where: { creator_id: _id },
-        }),
-        this.prisma.donation.aggregate({
-          _sum: { amount: true },
-          where: { supporter_id: _id },
-        }),
-        this.prisma.donation.findMany({
-          where: { creator_id: _id, supporter_id: { not: null } },
-          select: { supporter_id: true },
-          distinct: ['supporter_id'],
-        }),
-        this.prisma.donation.findMany({
-          where: { creator_id: _id },
-          orderBy: { created_at: 'desc' },
-          take: 5,
-          select: {
-            id: true,
-            amount: true,
-            message: true,
-            supporter_name: true,
-            supporter_xhandle: true,
-            is_guest: true,
-            created_at: true,
-            smile_count: true,
-            smile_price: true,
-            is_anonymous: true,
-            supporter: {
-              select: {
-                id: true,
-                username: true,
-                avatar: true,
-                cover_photo: true,
-              },
-            },
-          },
-        }),
-      ]);
-
-    const { _count, ...safeUser } = user;
-
-    const responseData: UserDetailsResponse = {
-      ...safeUser,
+    const responseData: FixedCompleteUserDTO = {
+      ...user,
       bank_account,
-      stats: {
-        total_donations_received: _count.donations || 0,
-        total_donations_given: _count.supports || 0,
-        total_amount_received: totalReceived._sum.amount || 0,
-        total_amount_given: totalGiven._sum.amount || 0,
-        total_supporters: uniqueSupporters.length,
-      },
-      recent_donations: recentDonations ?? [],
     };
 
-    const apiResponse: ApiResponseDTO<UserDetailsResponse> = {
+    const apiResponse: ApiResponseDTO<FixedCompleteUserDTO> = {
       success: true,
       data: responseData,
-      message: 'User details and donation stats fetched successfully.',
+      message: 'User details fetched successfully.',
     };
 
-    await redis.set(cacheKey, JSON.stringify(apiResponse), 'EX', 300);
+    await redis.set(cacheKey, JSON.stringify(apiResponse), 'EX', 120);
 
     return apiResponse;
+  }
+
+  async getUserStats(_id: string): Promise<ApiResponseDTO<UserStatsDTO>> {
+    const cacheKey = `user:${_id}:stats`;
+    const cached = await redis.get(cacheKey);
+
+    if (cached) {
+      return JSON.parse(cached) as ApiResponseDTO<UserStatsDTO>;
+    }
+
+    const [totalReceived, totalGiven, uniqueSupporters] = await Promise.all([
+      this.prisma.donation.aggregate({
+        _sum: { amount: true },
+        where: { creator_id: _id },
+      }),
+      this.prisma.donation.aggregate({
+        _sum: { amount: true },
+        where: { supporter_id: _id },
+      }),
+      this.prisma.donation.findMany({
+        where: { creator_id: _id, supporter_id: { not: null } },
+        select: { supporter_id: true },
+        distinct: ['supporter_id'],
+      }),
+    ]);
+
+    const donationCounts = await Promise.all([
+      this.prisma.donation.count({ where: { creator_id: _id } }),
+      this.prisma.donation.count({ where: { supporter_id: _id } }),
+    ]);
+
+    const stats: UserStatsDTO = {
+      total_donations_received: donationCounts[0] || 0,
+      total_donations_given: donationCounts[1] || 0,
+      total_amount_received: totalReceived._sum.amount || 0,
+      total_amount_given: totalGiven._sum.amount || 0,
+      total_supporters: uniqueSupporters.length,
+    };
+
+    const response = {
+      success: true,
+      data: stats,
+      message: 'User stats fetched successfully.',
+    };
+
+    await redis.set(cacheKey, JSON.stringify(response), 'EX', 120);
+
+    return response;
+  }
+
+  async getRecentDonations(
+    _id: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<ApiResponseDTO<DonationDetailsDTO[]>> {
+    const skip = (page - 1) * limit;
+
+    const donations = await this.prisma.donation.findMany({
+      where: { creator_id: _id },
+      orderBy: { created_at: 'desc' },
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        amount: true,
+        message: true,
+        supporter_name: true,
+        supporter_xhandle: true,
+        is_guest: true,
+        created_at: true,
+        smile_count: true,
+        smile_price: true,
+        is_anonymous: true,
+        supporter: {
+          select: {
+            id: true,
+            username: true,
+            avatar: true,
+            cover_photo: true,
+          },
+        },
+      },
+    });
+
+    return {
+      success: true,
+      data: donations as DonationDetailsDTO[],
+      message: 'User donations fetched successfully.',
+    };
   }
 
   async updateUserInfo(
@@ -387,14 +413,6 @@ export class UserService {
       data: {
         ...updatedUser,
         bank_account,
-        stats: {
-          total_amount_given: 0,
-          total_amount_received: 0,
-          total_donations_given: 0,
-          total_donations_received: 0,
-          total_supporters: 0,
-        },
-        recent_donations: [],
       },
       message: 'User profile updated successfully.',
     };

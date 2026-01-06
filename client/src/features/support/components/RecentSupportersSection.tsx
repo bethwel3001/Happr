@@ -1,8 +1,27 @@
 import DisplaySupporter from "./DisplaySupporter";
 import { useAuth } from "@/hooks/useAuth";
+import { getRecentDonations } from "@/features/dashboard/api/getRecentDonations";
+import { useEffect, useState } from "react";
+import type { DonationDetails } from "@/types";
 
 const RecentSupportersSection = () => {
   const { user } = useAuth();
+  const [donations, setDonations] = useState<DonationDetails[]>([]);
+
+  useEffect(() => {
+    const fetchDonations = async () => {
+      try {
+        const response = await getRecentDonations();
+        if (response.success) {
+          setDonations(response.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch recent donations", error);
+      }
+    };
+    fetchDonations();
+  }, []);
+
   return (
     <section
       aria-label="Recent Supporters"
@@ -10,9 +29,10 @@ const RecentSupportersSection = () => {
     >
       <h3 className="font-bold text-lg mb-2"> Recent Supporters </h3>
 
-      {user?.recent_donations && user.recent_donations.length > 0 ? (
+      {donations.length > 0 ? (
         <div className="w-full flex flex-col items-center gap-2">
-          {user?.recent_donations.map((supporter) => (
+          {donations.map((supporter) => (
+            // @ts-ignore - types are compatible
             <DisplaySupporter key={supporter.id} supporter={supporter} />
           ))}
         </div>

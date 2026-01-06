@@ -20,16 +20,16 @@ interface UserData {
     account_number: string;
     account_name: string;
   };
-  stats: {
-    total_amount_given: number;
-    total_amount_received: number;
-    total_donations_given: number;
-    total_donations_received: number;
-    total_supporters: number;
-  };
-  recent_donations: DonationDetails[];
   created_at: string | Date;
   updated_at: string | Date;
+}
+
+interface UserStats {
+  total_amount_given: number;
+  total_amount_received: number;
+  total_donations_given: number;
+  total_donations_received: number;
+  total_supporters: number;
 }
 
 interface DonationDetails {
@@ -55,4 +55,4 @@ interface DonationDetails {
 
 type User = UserData;
 
-export type { UserData, User };
+export type { UserData, User, UserStats, DonationDetails };
